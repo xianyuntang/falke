@@ -1,0 +1,13 @@
+services:
+  db:
+    image: postgres:13.16-alpine
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: subway
+      POSTGRES_PASSWORD: subway
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER}" ]
+      interval: 5s
+      timeout: 60s
+      retries: 10
