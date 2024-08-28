@@ -6,14 +6,14 @@ pub static SETTINGS: Lazy<Settings> = Lazy::new(|| Settings::new());
 
 pub enum EnvironmentVariable {
     ServerPort,
-    DbConnectionUrl,
+    DatabaseUrl,
 }
 
 impl EnvironmentVariable {
     fn as_str(&self) -> &str {
         match self {
             EnvironmentVariable::ServerPort => "SERVER_PORT",
-            EnvironmentVariable::DbConnectionUrl => "DB_CONNECTION_URL",
+            EnvironmentVariable::DatabaseUrl => "DATABASE_URL",
         }
     }
 
@@ -25,7 +25,7 @@ impl EnvironmentVariable {
 #[derive(Clone)]
 pub struct Settings {
     pub server_port: u16,
-    pub db_connection_url: String,
+    pub database_url: String,
 }
 
 impl Settings {
@@ -40,16 +40,17 @@ impl Settings {
                 3000
             });
 
-        let db_connection_url: String = EnvironmentVariable::DbConnectionUrl
-            .get_value()
-            .unwrap_or_else(|err| {
-                tracing::error!("DB_CONNECTION_URL must be set");
-                panic!("{}", err)
-            });
+        let database_url: String =
+            EnvironmentVariable::DatabaseUrl
+                .get_value()
+                .unwrap_or_else(|err| {
+                    tracing::error!("DB_CONNECTION_URL must be set");
+                    panic!("{}", err)
+                });
 
         Settings {
             server_port,
-            db_connection_url,
+            database_url,
         }
     }
 }

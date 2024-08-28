@@ -9,7 +9,7 @@ use sea_orm::DatabaseConnection;
 async fn main() {
     logging::init_tracing();
 
-    let db: DatabaseConnection = db::connect(&SETTINGS.db_connection_url).await;
+    let db: DatabaseConnection = db::connect(&SETTINGS.database_url).await;
 
     let app = server::make_app(db);
 
