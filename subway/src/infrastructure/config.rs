@@ -1,5 +1,8 @@
 use dotenv::dotenv;
+use once_cell::sync::Lazy;
 use std::env;
+
+pub static SETTINGS: Lazy<Settings> = Lazy::new(|| Settings::new());
 
 pub enum EnvironmentVariable {
     ServerPort,
@@ -19,13 +22,14 @@ impl EnvironmentVariable {
     }
 }
 
-pub struct Config {
+#[derive(Clone)]
+pub struct Settings {
     pub server_port: u16,
     pub db_connection_url: String,
 }
 
-impl Config {
-    pub fn new() -> Config {
+impl Settings {
+    pub fn new() -> Settings {
         dotenv().ok();
         let server_port: u16 = EnvironmentVariable::ServerPort
             .get_value()
@@ -43,7 +47,7 @@ impl Config {
                 panic!("{}", err)
             });
 
-        Config {
+        Settings {
             server_port,
             db_connection_url,
         }

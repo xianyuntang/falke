@@ -1,6 +1,6 @@
-use axum::response::Json;
-use serde_json::{json, Value};
+use axum::response::{IntoResponse, Json};
+use serde_json::json;
 
-pub fn handler() -> Json<Value> {
+pub async fn handler() -> impl IntoResponse {
     Json(json!({"message": "ok"}))
 }
