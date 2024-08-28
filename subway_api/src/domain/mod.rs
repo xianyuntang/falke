@@ -1,5 +1,5 @@
 use axum::Router;
-use subway::AppState;
+use subway_api::AppState;
 
 mod app;
 

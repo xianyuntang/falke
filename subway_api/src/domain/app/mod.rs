@@ -1,5 +1,5 @@
 use axum::routing::{get, Router};
-use subway::AppState;
+use subway_api::AppState;
 
 mod health_check;
 
