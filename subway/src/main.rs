@@ -1,29 +1,42 @@
-mod config;
-
+mod domain;
+mod infrastructure;
+use crate::infrastructure::config::Config;
 use axum::Router;
-use config::Config;
-use dotenv::dotenv;
 use sea_orm::{Database, DatabaseConnection};
+use tracing::error;
 
-fn make_app() -> Router {
-    let app = Router::new();
-    app
+fn init_tracing() {
+    tracing_subscriber::fmt::init();
+    std::panic::set_hook(Box::new(|panic_info| {
+        if let Some(s) = panic_info.payload().downcast_ref::<&str>() {
+            error!("panic occurred: {s}");
+        } else if let Some(s) = panic_info.payload().downcast_ref::<String>() {
+            error!("panic occurred: {s}");
+        } else {
+            error!("panic occurred with unknown payload");
+        }
+    }));
 }
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt::init();
-
-    dotenv().ok();
-
-    let app = make_app();
+    init_tracing();
 
     let config = Config::new();
 
+    let app = Router::new().nest("/api", domain::create_router());
+
     let _db: DatabaseConnection = Database::connect(config.db_connection_url)
         .await
-        .expect("Failed to connect to database");
+        .unwrap_or_else(|err| panic!("{}", err));
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", config.server_port))
+        .await
+        .unwrap_or_else(|err| panic!("{}", err));
+
+    tracing::info!(
+        "Application is running on http://0.0.0.0:{}",
+        config.server_port
+    );
     axum::serve(listener, app).await.unwrap();
 }

@@ -2068,6 +2068,8 @@ dependencies = [
  "axum",
  "dotenv",
  "sea-orm",
+ "serde",
+ "serde_json",
  "tokio",
  "tracing",
  "tracing-subscriber",

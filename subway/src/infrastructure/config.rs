@@ -19,7 +19,6 @@ impl EnvironmentVariable {
     }
 }
 
-#[derive(Clone, Debug)]
 pub struct Config {
     pub server_port: u16,
     pub db_connection_url: String,
@@ -27,6 +26,7 @@ pub struct Config {
 
 impl Config {
     pub fn new() -> Config {
+        dotenv().ok();
         let server_port: u16 = EnvironmentVariable::ServerPort
             .get_value()
             .ok()
@@ -40,7 +40,7 @@ impl Config {
             .get_value()
             .unwrap_or_else(|err| {
                 tracing::error!("DB_CONNECTION_URL must be set");
-                panic!()
+                panic!("{}", err)
             });
 
         Config {
