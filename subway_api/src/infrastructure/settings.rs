@@ -1,8 +1,5 @@
 use dotenv::dotenv;
-use once_cell::sync::Lazy;
 use std::env;
-
-pub static SETTINGS: Lazy<Settings> = Lazy::new(|| Settings::new());
 
 pub enum EnvironmentVariable {
     ServerPort,

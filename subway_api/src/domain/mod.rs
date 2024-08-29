@@ -1,8 +1,10 @@
 use axum::Router;
-use subway_api::AppState;
 
 mod app;
+mod auth;
 
-pub fn create_router() -> Router<AppState> {
-    Router::new().merge(app::create_route())
+pub fn create_router() -> Router {
+    Router::new()
+        .merge(app::create_route())
+        .merge(auth::create_route())
 }

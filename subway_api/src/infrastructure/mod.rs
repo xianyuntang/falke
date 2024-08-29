@@ -1,4 +1,6 @@
-pub mod config;
 pub mod db;
-pub mod logging;
+pub mod error;
+pub mod log;
+pub mod response;
 pub mod server;
+pub mod settings;

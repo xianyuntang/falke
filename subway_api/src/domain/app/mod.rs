@@ -1,8 +1,12 @@
+use axum::response::{IntoResponse, Json};
 use axum::routing::{get, Router};
-use subway_api::AppState;
+mod handlers;
 
-mod health_check;
+pub fn create_route() -> Router {
+    Router::new().route("/ping", get(health_check))
+}
 
-pub fn create_route() -> Router<AppState> {
-    Router::new().route("/ping", get(health_check::handler))
+async fn health_check() -> impl IntoResponse {
+    let response = handlers::health_check::handler().await;
+    Json(response)
 }

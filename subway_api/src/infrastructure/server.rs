@@ -1,12 +1,13 @@
 use crate::domain;
-use axum::Router;
+use crate::infrastructure::settings::Settings;
+use axum::{Extension, Router};
 use sea_orm::DatabaseConnection;
-use subway_api::AppState;
 
-pub fn make_app(db: DatabaseConnection) -> Router {
-    let shared_state = AppState { db };
+pub fn make_app(settings: Settings, db: DatabaseConnection) -> Router {
     let app = Router::new()
-        .nest("/subway_api", domain::create_router())
-        .with_state(shared_state);
+        .nest("/api", domain::create_router())
+        .layer(Extension(settings))
+        .layer(Extension(db));
+
     app
 }
