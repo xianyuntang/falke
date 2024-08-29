@@ -1,7 +1,7 @@
 use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveIden)]
-enum Users {
+enum User {
     Table,
     Id,
     Email,
@@ -19,13 +19,13 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(Users::Table)
+                    .table(User::Table)
                     .if_not_exists()
-                    .col(string(Users::Id).primary_key().string_len(21).not_null())
-                    .col(string(Users::Email).string_len(255).not_null())
-                    .col(string(Users::Password).string_len(60).not_null())
-                    .col(timestamp_with_time_zone(Users::CreatedAt))
-                    .col(timestamp_with_time_zone(Users::UpdatedAt))
+                    .col(string(User::Id).primary_key().string_len(21).not_null())
+                    .col(string(User::Email).string_len(255).not_null())
+                    .col(string(User::Password).string_len(60).not_null())
+                    .col(timestamp_with_time_zone(User::CreatedAt).default(Expr::cust("now()")))
+                    .col(timestamp_with_time_zone(User::UpdatedAt).default(Expr::cust("now()")))
                     .to_owned(),
             )
             .await
@@ -33,7 +33,7 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(Users::Table).to_owned())
+            .drop_table(Table::drop().table(User::Table).to_owned())
             .await
     }
 }

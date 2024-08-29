@@ -1,6 +1,8 @@
 use crate::infrastructure::response::JsonResponse;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
+use axum::Error;
+use bcrypt::BcryptError;
 use sea_orm::DbErr;
 use serde_json::json;
 use validator::ValidationErrors;
@@ -8,6 +10,7 @@ use validator::ValidationErrors;
 pub enum ApiError {
     ValidationErrors(ValidationErrors),
     InternalServerError,
+    Conflict,
 }
 
 impl IntoResponse for ApiError {
@@ -18,7 +21,8 @@ impl IntoResponse for ApiError {
                 JsonResponse(json!(validation_errors)),
             )
                 .into_response(),
-            ApiError::InternalServerError => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
+            ApiError::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            ApiError::Conflict => StatusCode::CONFLICT.into_response(),
         }
     }
 }
@@ -30,7 +34,15 @@ impl From<ValidationErrors> for ApiError {
 }
 
 impl From<DbErr> for ApiError {
-    fn from(_: DbErr) -> Self {
+    fn from(db_err: DbErr) -> Self {
+        tracing::error!("{}", db_err);
+        Self::InternalServerError
+    }
+}
+
+impl From<BcryptError> for ApiError {
+    fn from(bcrypt_error: BcryptError) -> Self {
+        tracing::error!("{}", bcrypt_error);
         Self::InternalServerError
     }
 }
