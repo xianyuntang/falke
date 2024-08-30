@@ -1,8 +1,8 @@
-use crate::domain::auth::dto::SignInRequestDto;
 use crate::domain::auth::jwt_validator::sign_jwt;
 use crate::infrastructure::error::ApiError;
 use crate::infrastructure::settings::Settings;
 use bcrypt::verify;
+use common::dto::auth::SignInRequestDto;
 use entity::entities::user;
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use serde_json::{json, Value};

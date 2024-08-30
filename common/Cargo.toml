@@ -1,0 +1,13 @@
+[package]
+name = "common"
+version = "0.1.0"
+edition = "2021"
+
+
+[lib]
+name = "common"
+path = "src/lib.rs"
+
+[dependencies]
+serde = { version = "1.0.209", features = ["derive"] }
+validator = { version = "0.18.1", features = ["derive"] }

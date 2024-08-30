@@ -1,12 +1,11 @@
-use crate::domain::auth::dto::SignUpRequestDto;
 use crate::infrastructure::error::ApiError;
 use ::entity::entities::user;
+use bcrypt::{hash, DEFAULT_COST};
+use common::dto::auth::SignUpRequestDto;
 use sea_orm::{
     ActiveModelTrait, ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter,
 };
 use serde_json::{json, Value};
-
-use bcrypt::{hash, DEFAULT_COST};
 
 pub async fn handler(dto: SignUpRequestDto, db: &DatabaseConnection) -> Result<Value, ApiError> {
     let exist = user::Entity::find()

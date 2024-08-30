@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 entity = { path = "../entity" }
 migration = { path = "../migration" }
+common = { path = "../common" }
 axum = "0.7.5"
 dotenv = "0.15.0"
 sea-orm = { version = "1.0.0", features = ["macros", "runtime-tokio-rustls", "sqlx-postgres"] }

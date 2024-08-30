@@ -1,12 +1,12 @@
 mod domain;
 mod infrastructure;
 
-use infrastructure::{db, log, server, settings::Settings};
+use infrastructure::{db, server, settings::Settings};
 use sea_orm::DatabaseConnection;
 
 #[tokio::main]
 async fn main() {
-    log::init_tracing();
+    tracing_subscriber::fmt().init();
 
     let settings = Settings::new();
     let db: DatabaseConnection = db::connect(&settings.database_url).await;

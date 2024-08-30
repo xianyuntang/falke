@@ -1,4 +1,3 @@
-use crate::domain::auth::dto::{SignInRequestDto, SignUpRequestDto};
 use crate::infrastructure::error::ApiError;
 use crate::infrastructure::response::JsonResponse;
 use crate::infrastructure::settings::Settings;
@@ -6,10 +5,10 @@ use axum::extract::Json;
 use axum::response::IntoResponse;
 use axum::routing::{post, Router};
 use axum::Extension;
+use common::dto::auth::{SignInRequestDto, SignUpRequestDto};
 use sea_orm::DatabaseConnection;
 use validator::Validate;
 
-mod dto;
 mod handlers;
 mod jwt_validator;
 
