@@ -6,11 +6,12 @@ use bcrypt::BcryptError;
 use sea_orm::DbErr;
 use serde_json::json;
 use validator::ValidationErrors;
-
 pub enum ApiError {
     ValidationErrors(ValidationErrors),
+    UnauthorizedError,
+    NotFoundError,
+    ConflictError,
     InternalServerError,
-    Conflict,
 }
 
 impl IntoResponse for ApiError {
@@ -21,8 +22,10 @@ impl IntoResponse for ApiError {
                 JsonResponse(json!(validation_errors)),
             )
                 .into_response(),
+            ApiError::UnauthorizedError => StatusCode::UNAUTHORIZED.into_response(),
+            ApiError::NotFoundError => StatusCode::NOT_FOUND.into_response(),
+            ApiError::ConflictError => StatusCode::CONFLICT.into_response(),
             ApiError::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-            ApiError::Conflict => StatusCode::CONFLICT.into_response(),
         }
     }
 }

@@ -6,7 +6,7 @@ use sea_orm::{
 };
 use serde_json::{json, Value};
 
-use bcrypt::{hash, verify, DEFAULT_COST};
+use bcrypt::{hash, DEFAULT_COST};
 
 pub async fn handler(dto: SignUpRequestDto, db: &DatabaseConnection) -> Result<Value, ApiError> {
     let exist = user::Entity::find()
@@ -15,7 +15,7 @@ pub async fn handler(dto: SignUpRequestDto, db: &DatabaseConnection) -> Result<V
         .await?;
 
     if let Some(_) = exist {
-        return Err(ApiError::Conflict);
+        return Err(ApiError::ConflictError);
     }
 
     let hashed_password = hash(dto.password, DEFAULT_COST)?;
