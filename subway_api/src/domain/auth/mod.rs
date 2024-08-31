@@ -1,7 +1,8 @@
 use crate::infrastructure::error::ApiError;
 use crate::infrastructure::response::JsonResponse;
+use crate::infrastructure::server::AppState;
 use crate::infrastructure::settings::Settings;
-use axum::extract::Json;
+use axum::extract::{Json, State};
 use axum::response::IntoResponse;
 use axum::routing::{post, Router};
 use axum::Extension;
@@ -12,7 +13,7 @@ use validator::Validate;
 mod handlers;
 mod jwt_validator;
 
-pub fn create_route() -> Router {
+pub fn create_route() -> Router<AppState> {
     Router::new().nest(
         "/auth",
         Router::new()
@@ -22,24 +23,23 @@ pub fn create_route() -> Router {
 }
 
 async fn sign_up(
-    Extension(db): Extension<DatabaseConnection>,
+    State(state): State<AppState>,
     Json(dto): Json<SignUpRequestDto>,
 ) -> Result<impl IntoResponse, ApiError> {
     dto.validate()?;
 
-    let response = handlers::sign_up::handler(dto, &db).await?;
+    let response = handlers::sign_up::handler(dto, state.db).await?;
 
     Ok(JsonResponse(response).into_response())
 }
 
 async fn sign_in(
-    Extension(db): Extension<DatabaseConnection>,
-    Extension(settings): Extension<Settings>,
+    State(state): State<AppState>,
     Json(dto): Json<SignInRequestDto>,
 ) -> Result<impl IntoResponse, ApiError> {
     dto.validate()?;
 
-    let response = handlers::sign_in::handler(dto, &db, &settings).await?;
+    let response = handlers::sign_in::handler(dto, state.db, state.settings).await?;
 
     Ok(JsonResponse(response).into_response())
 }

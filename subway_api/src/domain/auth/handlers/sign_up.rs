@@ -7,10 +7,10 @@ use sea_orm::{
 };
 use serde_json::{json, Value};
 
-pub async fn handler(dto: SignUpRequestDto, db: &DatabaseConnection) -> Result<Value, ApiError> {
+pub async fn handler(dto: SignUpRequestDto, db: DatabaseConnection) -> Result<Value, ApiError> {
     let exist = user::Entity::find()
         .filter(user::Column::Email.eq(&dto.email))
-        .one(db)
+        .one(&db)
         .await?;
 
     if let Some(_) = exist {
@@ -25,7 +25,7 @@ pub async fn handler(dto: SignUpRequestDto, db: &DatabaseConnection) -> Result<V
         ..Default::default()
     };
 
-    let res = user.insert(db).await?;
+    let res = user.insert(&db).await?;
 
     Ok(json!(res))
 }

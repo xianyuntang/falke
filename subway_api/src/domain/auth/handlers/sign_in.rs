@@ -9,12 +9,12 @@ use serde_json::{json, Value};
 
 pub async fn handler(
     dto: SignInRequestDto,
-    db: &DatabaseConnection,
-    settings: &Settings,
+    db: DatabaseConnection,
+    settings: Settings,
 ) -> Result<Value, ApiError> {
     let exist = match user::Entity::find()
         .filter(user::Column::Email.eq(&dto.email))
-        .one(db)
+        .one(&db)
         .await?
     {
         Some(model) => model,
