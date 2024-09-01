@@ -7,7 +7,7 @@ edition = "2021"
 entity = { path = "../entity" }
 migration = { path = "../migration" }
 common = { path = "../common" }
-axum = "0.7.5"
+axum = { version = "0.7.5", features = ["ws"] }
 dotenv = "0.15.0"
 sea-orm = { version = "1.0.0", features = ["macros", "runtime-tokio-rustls", "sqlx-postgres"] }
 serde = { version = "1.0.209", features = ["derive"] }
@@ -20,3 +20,6 @@ regex = "1.10.6"
 bcrypt = "0.15.1"
 jsonwebtoken = "9.3.0"
 chrono = "0.4.38"
+dashmap = "6.0.1"
+nanoid = "0.4.0"
+futures-util = "0.3.30"

@@ -1,6 +1,6 @@
 use crate::domain;
 use crate::infrastructure::settings::Settings;
-use axum::{Extension, Router};
+use axum::Router;
 use sea_orm::DatabaseConnection;
 
 #[derive(Clone)]

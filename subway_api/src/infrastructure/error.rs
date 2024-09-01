@@ -1,7 +1,7 @@
 use crate::infrastructure::response::JsonResponse;
+use axum::http::status::InvalidStatusCode;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use axum::Error;
 use bcrypt::BcryptError;
 use sea_orm::DbErr;
 use serde_json::json;
@@ -10,11 +10,14 @@ use validator::ValidationErrors;
 
 pub enum ApiError {
     ValidationErrors(ValidationErrors),
-    Error(io::Error),
+    IoError(io::Error),
+    AxumError(axum::Error),
     UnauthorizedError,
     NotFoundError,
     ConflictError,
     InternalServerError,
+    InvalidStatusCode(InvalidStatusCode),
+    JsonError(serde_json::Error),
 }
 
 impl IntoResponse for ApiError {
@@ -29,7 +32,10 @@ impl IntoResponse for ApiError {
             ApiError::NotFoundError => StatusCode::NOT_FOUND.into_response(),
             ApiError::ConflictError => StatusCode::CONFLICT.into_response(),
             ApiError::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-            ApiError::Error(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            ApiError::IoError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            ApiError::AxumError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            ApiError::InvalidStatusCode(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            ApiError::JsonError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
         }
     }
 }
@@ -56,6 +62,27 @@ impl From<BcryptError> for ApiError {
 
 impl From<io::Error> for ApiError {
     fn from(error: io::Error) -> Self {
+        tracing::error!("{}", error);
+        Self::InternalServerError
+    }
+}
+
+impl From<axum::Error> for ApiError {
+    fn from(error: axum::Error) -> Self {
+        tracing::error!("{}", error);
+        Self::InternalServerError
+    }
+}
+
+impl From<InvalidStatusCode> for ApiError {
+    fn from(invalid_status_code: InvalidStatusCode) -> Self {
+        tracing::error!("{}", invalid_status_code);
+        Self::InternalServerError
+    }
+}
+
+impl From<serde_json::Error> for ApiError {
+    fn from(error: serde_json::Error) -> Self {
         tracing::error!("{}", error);
         Self::InternalServerError
     }

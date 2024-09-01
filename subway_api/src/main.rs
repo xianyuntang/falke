@@ -3,6 +3,7 @@ mod infrastructure;
 
 use infrastructure::{db, server, settings::Settings};
 use sea_orm::DatabaseConnection;
+use std::net::SocketAddr;
 
 #[tokio::main]
 async fn main() {
@@ -21,5 +22,10 @@ async fn main() {
         "Application is running on http://0.0.0.0:{}",
         settings.server_port
     );
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await
+    .unwrap();
 }

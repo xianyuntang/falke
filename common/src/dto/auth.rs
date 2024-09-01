@@ -30,3 +30,10 @@ pub struct SignInRequestDto {
 pub struct SignInResponseDto {
     pub access_token: String,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct AcquireTunnelResponseDto {
+    pub id: String,
+    pub created_at: String,
+    pub updated_at: String,
+}

@@ -2,15 +2,15 @@ mod services;
 
 use crate::services::api::ApiService;
 use clap::{Parser, Subcommand};
-use std::collections::HashMap;
-use std::error::Error;
-use std::future::Future;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Cli {
-    #[clap(short, long, default_value = "http://localhost:3000")]
+    #[clap(short, long, default_value = "localhost:3000")]
     server: String,
+
+    #[clap(short, long, default_value = "false")]
+    use_ssl: bool,
 
     #[command(subcommand)]
     command: Commands,
@@ -35,7 +35,7 @@ async fn main() {
     tracing_subscriber::fmt().init();
 
     let cli = Cli::parse();
-    let mut api_service = ApiService::new(cli.server);
+    let mut api_service = ApiService::new(cli.server, cli.use_ssl);
 
     match api_service.health_check().await {
         Ok(response) => response,
@@ -59,6 +59,22 @@ async fn main() {
         Commands::Tunnel {
             local_host,
             local_port,
-        } => {}
+        } => {
+            match api_service.acquire_tunnel().await {
+                Ok(response) => response,
+                Err(err) => {
+                    tracing::error!("{:#?}", err.to_string());
+                    panic!()
+                }
+            };
+
+            match api_service.start_proxy(local_host, local_port).await {
+                Ok(response) => response,
+                Err(err) => {
+                    tracing::error!("{:#?}", err.to_string());
+                    panic!()
+                }
+            };
+        }
     }
 }
