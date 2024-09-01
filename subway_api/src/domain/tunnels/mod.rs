@@ -1,7 +1,7 @@
 use crate::infrastructure::error::ApiError;
 use crate::infrastructure::response::JsonResponse;
 use crate::infrastructure::server::AppState;
-use axum::body::{Body, Bytes};
+use axum::body::Bytes;
 use axum::extract::ws::WebSocketUpgrade;
 use axum::extract::{Path, State};
 use axum::http::{HeaderMap, Method, StatusCode};
@@ -10,7 +10,6 @@ use axum::routing::{any, delete, get, post};
 use axum::Router;
 use common::converter::json::json_string_to_header_map;
 use serde::Deserialize;
-use serde_json::json;
 
 pub mod handlers;
 mod socket_manager;

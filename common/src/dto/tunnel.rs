@@ -2,7 +2,6 @@ use crate::converter::json::header_map_to_json_string;
 use axum::body::Bytes;
 use axum::http::{HeaderMap, Method, StatusCode};
 use serde::{Deserialize, Serialize};
-use serde_json;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TunnelRequest {
