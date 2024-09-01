@@ -11,7 +11,6 @@ use axum::routing::{any, delete, get, post};
 use axum::Router;
 use common::converter::json::json_string_to_header_map;
 use serde::Deserialize;
-use tracing::Instrument;
 
 pub mod handlers;
 mod socket_manager;

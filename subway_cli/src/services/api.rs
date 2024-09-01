@@ -7,7 +7,6 @@ use common::dto::tunnel::{TunnelRequest, TunnelResponse};
 use reqwest::{Body, Client, Method};
 use std::error::Error;
 use std::str::FromStr;
-use tokio::fs;
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 use url::Url;
 
@@ -16,7 +15,6 @@ pub struct ApiService {
     pub client: Client,
     pub server: String,
     pub secure: bool,
-    pub access_token: Option<String>,
 }
 
 impl ApiService {
@@ -27,7 +25,6 @@ impl ApiService {
             client,
             server,
             secure,
-            access_token: None,
             tunnel_id: None,
         }
     }
