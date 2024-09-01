@@ -8,7 +8,7 @@ use common::dto::auth::{SignInRequestDto, SignUpRequestDto};
 use validator::Validate;
 
 mod handlers;
-mod jwt_validator;
+pub mod jwt_validator;
 
 pub fn create_route() -> Router<AppState> {
     Router::new().nest(

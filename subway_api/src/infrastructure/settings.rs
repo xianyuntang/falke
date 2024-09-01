@@ -4,6 +4,7 @@ use std::env;
 pub enum EnvironmentVariable {
     ServerPort,
     ServerSecret,
+    ExternalUrl,
     DatabaseUrl,
 }
 
@@ -12,6 +13,7 @@ impl EnvironmentVariable {
         match self {
             EnvironmentVariable::ServerPort => "SERVER_PORT",
             EnvironmentVariable::ServerSecret => "SERVER_SECRET",
+            EnvironmentVariable::ExternalUrl => "EXTERNAL_URL",
             EnvironmentVariable::DatabaseUrl => "DATABASE_URL",
         }
     }
@@ -25,6 +27,7 @@ impl EnvironmentVariable {
 pub struct Settings {
     pub server_port: u16,
     pub server_secret: String,
+    pub external_url: String,
     pub database_url: String,
 }
 
@@ -47,6 +50,14 @@ impl Settings {
                 panic!("{}", err)
             });
 
+        let external_url: String =
+            EnvironmentVariable::ExternalUrl
+                .get_value()
+                .unwrap_or_else(|err| {
+                    tracing::error!("EXTERNAL_URL must be set");
+                    panic!("{}", err)
+                });
+
         let database_url: String =
             EnvironmentVariable::DatabaseUrl
                 .get_value()
@@ -58,6 +69,7 @@ impl Settings {
         Settings {
             server_port,
             server_secret,
+            external_url,
             database_url,
         }
     }

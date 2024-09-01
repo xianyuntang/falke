@@ -6,6 +6,7 @@ use bcrypt::BcryptError;
 use sea_orm::DbErr;
 use serde_json::json;
 use std::io;
+use url;
 use validator::ValidationErrors;
 
 pub enum ApiError {
@@ -18,6 +19,7 @@ pub enum ApiError {
     InternalServerError,
     InvalidStatusCode(InvalidStatusCode),
     JsonError(serde_json::Error),
+    ParserError(url::ParseError),
 }
 
 impl IntoResponse for ApiError {
@@ -36,6 +38,7 @@ impl IntoResponse for ApiError {
             ApiError::AxumError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
             ApiError::InvalidStatusCode(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
             ApiError::JsonError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            ApiError::ParserError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
         }
     }
 }
@@ -83,6 +86,13 @@ impl From<InvalidStatusCode> for ApiError {
 
 impl From<serde_json::Error> for ApiError {
     fn from(error: serde_json::Error) -> Self {
+        tracing::error!("{}", error);
+        Self::InternalServerError
+    }
+}
+
+impl From<url::ParseError> for ApiError {
+    fn from(error: url::ParseError) -> Self {
         tracing::error!("{}", error);
         Self::InternalServerError
     }

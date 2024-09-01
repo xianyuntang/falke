@@ -1,11 +1,13 @@
 use common::dto::auth::{AcquireTunnelResponseDto, SignInRequestDto, SignInResponseDto};
 use futures_util::{SinkExt, StreamExt};
 
+use crate::services::credential::{read_token, write_token};
 use common::converter::json::json_string_to_header_map;
 use common::dto::tunnel::{TunnelRequest, TunnelResponse};
 use reqwest::{Body, Client, Method};
 use std::error::Error;
 use std::str::FromStr;
+use tokio::fs;
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 use url::Url;
 
@@ -50,7 +52,7 @@ impl ApiService {
         match response.status().is_success() {
             true => {
                 let response: SignInResponseDto = response.json().await?;
-                self.access_token = Option::from(response.access_token);
+                write_token(response.access_token).await?;
                 Ok(())
             }
             false => {
@@ -62,12 +64,18 @@ impl ApiService {
 
     pub async fn acquire_tunnel(&mut self) -> Result<(), Box<dyn Error>> {
         let url = self.build_url("/api/tunnels", "http");
-
-        let response = self.client.post(url).send().await?;
+        let access_token = read_token().await?;
+        let response = self
+            .client
+            .post(url)
+            .header("authorization", access_token)
+            .send()
+            .await?;
         match response.status().is_success() {
             true => {
                 let response: AcquireTunnelResponseDto = response.json().await?;
                 self.tunnel_id = Option::from(response.id);
+                tracing::info!("Proxy on {}", response.proxy_endpoint);
                 Ok(())
             }
             false => {
@@ -86,7 +94,6 @@ impl ApiService {
             &format!("/api/tunnels/{}/ws", self.tunnel_id.clone().unwrap()),
             "ws",
         );
-        tracing::info!("Start proxy on {}", url.as_str());
 
         let (ws_stream, _) = connect_async(url.as_str()).await.unwrap();
 
@@ -102,7 +109,8 @@ impl ApiService {
                         .await?;
                 }
                 Err(error) => {
-                    panic!("{error}")
+                    tracing::error!("{error}");
+                    panic!()
                 }
             }
         }

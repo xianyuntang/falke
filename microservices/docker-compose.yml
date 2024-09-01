@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:13.16-alpine
+    image: postgres:15.3
     ports:
       - 5432:5432
     environment:

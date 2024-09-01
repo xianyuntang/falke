@@ -10,7 +10,7 @@ pub struct TunnelRequest {
     pub method: String,
     pub headers: String,
     pub upgrade: String,
-    pub body: String,
+    pub body: Vec<u8>,
 }
 
 impl TunnelRequest {
@@ -28,7 +28,7 @@ impl TunnelRequest {
             method: method.to_string(),
             headers: header_map_to_json_string(headers).unwrap(),
             upgrade: upgrade.to_string(),
-            body: String::from_utf8(body.to_vec()).unwrap(),
+            body: body.to_vec(),
         }
     }
 }
@@ -38,7 +38,7 @@ pub struct TunnelResponse {
     pub id: String,
     pub headers: String,
     pub status_code: u16,
-    pub body: String,
+    pub body: Vec<u8>,
 }
 
 impl TunnelResponse {
@@ -47,7 +47,7 @@ impl TunnelResponse {
             id: id.to_string(),
             headers: header_map_to_json_string(headers).unwrap(),
             status_code: status_code.into(),
-            body: String::from_utf8(body.to_vec()).unwrap(),
+            body: body.to_vec(),
         }
     }
 }
