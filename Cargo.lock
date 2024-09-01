@@ -3200,7 +3200,6 @@ dependencies = [
  "entity",
  "futures-util",
  "jsonwebtoken",
- "migration",
  "nanoid",
  "regex",
  "sea-orm",

@@ -5,7 +5,6 @@ edition = "2021"
 
 [dependencies]
 entity = { path = "../entity" }
-migration = { path = "../migration" }
 common = { path = "../common" }
 axum = { version = "0.7.5", features = ["ws"] }
 dotenv = "0.15.0"
