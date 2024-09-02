@@ -1,9 +1,9 @@
 use crate::domain::tunnels::socket_manager::SOCKET_MANAGER;
-use crate::infrastructure::error::ApiError;
 use axum::body::Bytes;
 use axum::extract::ws::Message;
 use axum::http::{HeaderMap, Method};
 use common::dto::tunnel::{TunnelRequest, TunnelResponse};
+use common::infrastructure::error::ApiError;
 use entity::entities::tunnel;
 use futures_util::SinkExt;
 use nanoid::nanoid;

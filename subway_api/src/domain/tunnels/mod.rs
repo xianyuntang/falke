@@ -1,6 +1,4 @@
 use crate::domain::auth::jwt_validator::verify;
-use crate::infrastructure::error::ApiError;
-use crate::infrastructure::response::JsonResponse;
 use crate::infrastructure::server::AppState;
 use axum::body::{Body, Bytes};
 use axum::extract::ws::WebSocketUpgrade;
@@ -10,6 +8,8 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::{any, delete, get, post};
 use axum::Router;
 use common::converter::json::json_string_to_header_map;
+use common::infrastructure::error::ApiError;
+use common::infrastructure::response::JsonResponse;
 use serde::Deserialize;
 
 pub mod handlers;
@@ -60,9 +60,10 @@ async fn acquire_tunnel(
 
 async fn ws_handler(
     ws: WebSocketUpgrade,
+    State(AppState { db, .. }): State<AppState>,
     Path(WsParams { tunnel_id }): Path<WsParams>,
 ) -> impl IntoResponse {
-    ws.on_upgrade(move |socket| handlers::socket::handler(socket, tunnel_id))
+    ws.on_upgrade(move |socket| handlers::socket::handler(db, socket, tunnel_id))
 }
 
 async fn proxy(
@@ -88,8 +89,8 @@ async fn proxy(
 
     let mut response = Response::builder().status(response_status_code);
 
-    for (header_name, header_value) in response_headers.iter() {
-        response = response.header(header_name.to_string(), header_value.to_str().unwrap());
+    for (name, value) in response_headers.iter() {
+        response = response.header(name.to_string(), value.to_str().unwrap());
     }
 
     Ok(response.body(response_body).unwrap())

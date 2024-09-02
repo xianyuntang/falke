@@ -1,7 +1,7 @@
-use crate::infrastructure::error::ApiError;
 use ::entity::entities::user;
 use bcrypt::{hash, DEFAULT_COST};
 use common::dto::auth::SignUpRequestDto;
+use common::infrastructure::error::ApiError;
 use sea_orm::{
     ActiveModelTrait, ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter,
 };

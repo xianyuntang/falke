@@ -1,6 +1,5 @@
-use crate::infrastructure::error::ApiError;
-
-use crate::infrastructure::settings::Settings;
+use common::infrastructure::error::ApiError;
+use common::infrastructure::settings::Settings;
 use entity::entities;
 use sea_orm::{ActiveModelTrait, ActiveValue, DatabaseConnection};
 use serde_json::{json, Value};
@@ -18,11 +17,8 @@ pub async fn handler(
 
     let res = tunnel.insert(&db).await?;
 
-    let proxy_endpoint = Url::parse(&format!(
-        "{}/api/tunnels/{}/proxy",
-        settings.external_url, res.id
-    ))?
-    .to_string();
+    let proxy_endpoint =
+        Url::parse(&format!("https://{}.{}", res.id, settings.external_url,))?.to_string();
 
     Ok(json!({
         "id": res.id,

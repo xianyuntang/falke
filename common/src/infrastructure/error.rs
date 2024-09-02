@@ -3,6 +3,7 @@ use axum::http::status::InvalidStatusCode;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use bcrypt::BcryptError;
+use reqwest;
 use sea_orm::DbErr;
 use serde_json::json;
 use std::io;
@@ -20,6 +21,7 @@ pub enum ApiError {
     InvalidStatusCode(InvalidStatusCode),
     JsonError(serde_json::Error),
     ParserError(url::ParseError),
+    ReqError(reqwest::Error),
 }
 
 impl IntoResponse for ApiError {
@@ -39,6 +41,7 @@ impl IntoResponse for ApiError {
             ApiError::InvalidStatusCode(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
             ApiError::JsonError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
             ApiError::ParserError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            ApiError::ReqError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
         }
     }
 }
@@ -93,6 +96,13 @@ impl From<serde_json::Error> for ApiError {
 
 impl From<url::ParseError> for ApiError {
     fn from(error: url::ParseError) -> Self {
+        tracing::error!("{}", error);
+        Self::InternalServerError
+    }
+}
+
+impl From<reqwest::Error> for ApiError {
+    fn from(error: reqwest::Error) -> Self {
         tracing::error!("{}", error);
         Self::InternalServerError
     }
