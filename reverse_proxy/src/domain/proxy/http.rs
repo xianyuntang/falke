@@ -11,19 +11,22 @@ pub async fn handler(
     path: String,
     headers: HeaderMap,
     body: Bytes,
-    api_url: String,
+    api_endpoint: String,
     api: bool,
 ) -> Result<Response, ApiError> {
     let client = reqwest::Client::new();
 
     let url = match api {
-        true => Url::parse(&format!("{api_url}/{path}"))?,
+        true => Url::parse(&format!("http://{api_endpoint}/{path}"))?,
         false => {
             let host = host.0.to_string();
             let tunnel_id = host.split('.').next().unwrap();
-            Url::parse(&format!("{api_url}/api/tunnels/{tunnel_id}/proxy/{path}"))?
+            Url::parse(&format!(
+                "http://{api_endpoint}/api/tunnels/{tunnel_id}/proxy/{path}"
+            ))?
         }
     };
+    tracing::info!("Proxy HTTP request {method} to {}", url.as_str());
 
     let response = client
         .request(method, url.as_str())

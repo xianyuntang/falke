@@ -26,6 +26,8 @@ pub async fn handler(
     let sender = SOCKET_MANAGER.senders.get(&tunnel_id);
 
     if let Some(sender_ref) = sender {
+        tracing::info!("Redirect request {} to path {}", method.as_str(), &upgrade);
+
         let id = nanoid!();
         let sender_mutex = sender_ref.value();
         let mut sender = sender_mutex.lock().await;

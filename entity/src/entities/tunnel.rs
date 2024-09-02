@@ -38,7 +38,7 @@ impl Related<super::user::Entity> for Entity {
 impl ActiveModelBehavior for ActiveModel {
     fn new() -> Self {
         Self {
-            id: Set(nanoid!()),
+            id: Set(nanoid!().to_lowercase()),
             ..ActiveModelTrait::default()
         }
     }

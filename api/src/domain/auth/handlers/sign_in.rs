@@ -18,7 +18,7 @@ pub async fn handler(
         .await?
     {
         Some(model) => model,
-        None => return Err(ApiError::NotFoundError),
+        None => return Err(ApiError::UnauthorizedError),
     };
 
     let is_password_match = verify(dto.password, exist.password.as_str())?;

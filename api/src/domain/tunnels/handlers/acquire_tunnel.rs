@@ -17,8 +17,11 @@ pub async fn handler(
 
     let res = tunnel.insert(&db).await?;
 
-    let proxy_endpoint =
-        Url::parse(&format!("https://{}.{}", res.id, settings.external_url,))?.to_string();
+    let proxy_endpoint = Url::parse(&format!(
+        "https://{}.{}",
+        res.id, settings.reverse_proxy_host,
+    ))?
+    .to_string();
 
     Ok(json!({
         "id": res.id,

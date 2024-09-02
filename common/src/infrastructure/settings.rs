@@ -5,10 +5,9 @@ pub enum EnvironmentVariable {
     DatabaseUrl,
     ApiPort,
     ApiSecret,
+    ApiHost,
     ReverseProxyPort,
-    ReverseProxyToken,
-    ApiUrl,
-    ExternalUrl,
+    ReverseProxyHost,
 }
 
 impl EnvironmentVariable {
@@ -16,11 +15,10 @@ impl EnvironmentVariable {
         match self {
             EnvironmentVariable::ApiPort => "API_PORT",
             EnvironmentVariable::ApiSecret => "API_SECRET",
-            EnvironmentVariable::ExternalUrl => "EXTERNAL_URL",
+            EnvironmentVariable::ApiHost => "API_HOST",
+            EnvironmentVariable::ReverseProxyHost => "REVERSE_PROXY_HOST",
             EnvironmentVariable::DatabaseUrl => "DATABASE_URL",
             EnvironmentVariable::ReverseProxyPort => "REVERSE_PROXY_PORT",
-            EnvironmentVariable::ReverseProxyToken => "REVERSE_PROXY_TOKEN",
-            EnvironmentVariable::ApiUrl => "API_URL",
         }
     }
 
@@ -33,16 +31,22 @@ impl EnvironmentVariable {
 pub struct Settings {
     pub api_port: u16,
     pub api_secret: String,
-    pub api_url: String,
+    pub api_host: String,
     pub reverse_proxy_port: u16,
-    pub reverse_proxy_token: String,
+    pub reverse_proxy_host: String,
     pub database_url: String,
-    pub external_url: String,
 }
 
 impl Settings {
     pub fn new() -> Settings {
         dotenv().ok();
+        let api_host: String = EnvironmentVariable::ApiHost
+            .get_value()
+            .unwrap_or_else(|err| {
+                tracing::error!("API_HOST must be set");
+                panic!("{}", err)
+            });
+
         let api_port: u16 = EnvironmentVariable::ApiPort
             .get_value()
             .ok()
@@ -68,10 +72,10 @@ impl Settings {
                 3000
             });
 
-        let reverse_proxy_token: String = EnvironmentVariable::ReverseProxyToken
+        let reverse_proxy_host: String = EnvironmentVariable::ReverseProxyHost
             .get_value()
             .unwrap_or_else(|err| {
-                tracing::error!("REVERSE_PROXY_TOKEN must be set");
+                tracing::error!("REVERSE_PROXY_HOST must be set");
                 panic!("{}", err)
             });
 
@@ -83,28 +87,12 @@ impl Settings {
                     panic!("{}", err)
                 });
 
-        let external_url: String =
-            EnvironmentVariable::ExternalUrl
-                .get_value()
-                .unwrap_or_else(|err| {
-                    tracing::error!("EXTERNAL_URL must be set");
-                    panic!("{}", err)
-                });
-
-        let api_url: String = EnvironmentVariable::ApiUrl
-            .get_value()
-            .unwrap_or_else(|err| {
-                tracing::error!("API_URL must be set");
-                panic!("{}", err)
-            });
-
         Settings {
             api_port,
             api_secret,
-            api_url,
+            api_host,
             reverse_proxy_port,
-            reverse_proxy_token,
-            external_url,
+            reverse_proxy_host,
             database_url,
         }
     }

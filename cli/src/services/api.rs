@@ -4,6 +4,7 @@ use futures_util::{SinkExt, StreamExt};
 use crate::services::credential::{read_token, write_token};
 use common::converter::json::json_string_to_header_map;
 use common::dto::tunnel::{TunnelRequest, TunnelResponse};
+use reqwest::header::HeaderMap;
 use reqwest::{Body, Client, Method};
 use std::error::Error;
 use std::str::FromStr;
@@ -19,7 +20,9 @@ pub struct ApiService {
 
 impl ApiService {
     pub fn new(server: String, secure: bool) -> Self {
-        let client = Client::new();
+        let mut headers = HeaderMap::new();
+        headers.insert("x-subway-api", "yes".parse().unwrap());
+        let client = Client::builder().default_headers(headers).build().unwrap();
 
         Self {
             client,
@@ -132,6 +135,9 @@ impl ApiService {
             "http://{local_host}:{local_port}/{}",
             tunnel_request.upgrade
         ))?;
+
+        tracing::info!("Redirect request {} to {} ", method.as_str(), url.as_str());
+
         let response = self
             .client
             .request(method, url)
