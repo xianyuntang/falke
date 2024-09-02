@@ -49,7 +49,7 @@ async fn acquire_tunnel(
     }
 
     let user_id = verify(
-        &state.settings.server_secret,
+        &state.settings.api_secret,
         &authorization.unwrap().to_str().unwrap(),
     );
 

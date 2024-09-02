@@ -16,13 +16,13 @@ async fn main() {
 
     let app = server::make_app(settings.clone(), db);
 
-    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", settings.server_port))
+    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", settings.api_port))
         .await
         .unwrap_or_else(|err| panic!("{}", err));
 
     tracing::info!(
         "Application is running on http://0.0.0.0:{}",
-        settings.server_port
+        settings.api_port
     );
     axum::serve(
         listener,

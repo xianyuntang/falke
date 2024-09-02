@@ -3,8 +3,8 @@ use std::env;
 
 pub enum EnvironmentVariable {
     DatabaseUrl,
-    ServerPort,
-    ServerSecret,
+    ApiPort,
+    ApiSecret,
     ReverseProxyPort,
     ReverseProxyToken,
     ApiUrl,
@@ -14,8 +14,8 @@ pub enum EnvironmentVariable {
 impl EnvironmentVariable {
     fn as_str(&self) -> &str {
         match self {
-            EnvironmentVariable::ServerPort => "SERVER_PORT",
-            EnvironmentVariable::ServerSecret => "SERVER_SECRET",
+            EnvironmentVariable::ApiPort => "API_PORT",
+            EnvironmentVariable::ApiSecret => "API_SECRET",
             EnvironmentVariable::ExternalUrl => "EXTERNAL_URL",
             EnvironmentVariable::DatabaseUrl => "DATABASE_URL",
             EnvironmentVariable::ReverseProxyPort => "REVERSE_PROXY_PORT",
@@ -31,31 +31,31 @@ impl EnvironmentVariable {
 
 #[derive(Clone)]
 pub struct Settings {
-    pub server_port: u16,
-    pub server_secret: String,
+    pub api_port: u16,
+    pub api_secret: String,
+    pub api_url: String,
     pub reverse_proxy_port: u16,
     pub reverse_proxy_token: String,
     pub database_url: String,
     pub external_url: String,
-    pub api_url: String,
 }
 
 impl Settings {
     pub fn new() -> Settings {
         dotenv().ok();
-        let server_port: u16 = EnvironmentVariable::ServerPort
+        let api_port: u16 = EnvironmentVariable::ApiPort
             .get_value()
             .ok()
             .and_then(|value| value.parse::<u16>().ok())
             .unwrap_or_else(|| {
-                tracing::info!("SERVER_PORT is not set or invalid, defaulting to 3000");
+                tracing::info!("API_PORT is not set or invalid, defaulting to 3000");
                 3000
             });
 
-        let server_secret: String = EnvironmentVariable::ServerSecret
+        let api_secret: String = EnvironmentVariable::ApiSecret
             .get_value()
             .unwrap_or_else(|err| {
-                tracing::error!("SERVER_SECRET must be set");
+                tracing::error!("API_SECRET must be set");
                 panic!("{}", err)
             });
 
@@ -99,13 +99,13 @@ impl Settings {
             });
 
         Settings {
-            server_port,
-            server_secret,
+            api_port,
+            api_secret,
+            api_url,
             reverse_proxy_port,
             reverse_proxy_token,
             external_url,
             database_url,
-            api_url,
         }
     }
 }
