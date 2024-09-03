@@ -2,7 +2,7 @@ use crate::domain::tunnels::socket_manager::SOCKET_MANAGER;
 use axum::body::Bytes;
 use axum::extract::ws::Message;
 use axum::http::{HeaderMap, Method};
-use common::dto::tunnel::{TunnelRequest, TunnelResponse};
+use common::dto::proxy::{ProxyRequest, ProxyResponse};
 use common::infrastructure::error::ApiError;
 use entity::entities::tunnel;
 use futures_util::SinkExt;
@@ -16,7 +16,7 @@ pub async fn handler(
     method: Method,
     headers: HeaderMap,
     body: Bytes,
-) -> Result<TunnelResponse, ApiError> {
+) -> Result<ProxyResponse, ApiError> {
     let tunnel = tunnel::Entity::find_by_id(&tunnel_id).one(&db).await?;
 
     if tunnel.is_none() {
@@ -31,12 +31,10 @@ pub async fn handler(
         let id = nanoid!();
         let sender_mutex = sender_ref.value();
         let mut sender = sender_mutex.lock().await;
-        let tunnel_request = TunnelRequest::new(&id, &tunnel_id, method, headers, &path, body);
+        let tunnel_request = ProxyRequest::new(&id, &tunnel_id, method, headers, &path, body);
 
         sender
-            .send(Message::Text(
-                serde_json::to_string(&tunnel_request).unwrap(),
-            ))
+            .send(Message::Text(serde_json::to_string(&tunnel_request)?))
             .await?;
 
         loop {

@@ -1,8 +1,9 @@
 use axum::body::Bytes;
 use axum::extract::Host;
 use axum::http::HeaderMap;
+use common::dto::proxy::ReqwestResponse;
 use common::infrastructure::error::ApiError;
-use reqwest::{Method, Response};
+use reqwest::Method;
 use url::Url;
 
 pub async fn handler(
@@ -13,19 +14,21 @@ pub async fn handler(
     body: Bytes,
     api_endpoint: String,
     api: bool,
-) -> Result<Response, ApiError> {
+) -> Result<ReqwestResponse, ApiError> {
     let client = reqwest::Client::new();
 
-    let url = match api {
-        true => Url::parse(&format!("http://{api_endpoint}/{path}"))?,
-        false => {
+    let url = Url::parse(&format!(
+        "http://{}/{}",
+        api_endpoint,
+        if api {
+            path.to_string()
+        } else {
             let host = host.0.to_string();
             let tunnel_id = host.split('.').next().unwrap();
-            Url::parse(&format!(
-                "http://{api_endpoint}/api/tunnels/{tunnel_id}/proxy/{path}"
-            ))?
+            format!("api/tunnels/{}/proxy/{}", tunnel_id, path)
         }
-    };
+    ))?;
+
     tracing::info!("Proxy HTTP request {method} to {}", url.as_str());
 
     let response = client
@@ -35,5 +38,5 @@ pub async fn handler(
         .send()
         .await?;
 
-    Ok(response)
+    Ok(ReqwestResponse::new(response))
 }

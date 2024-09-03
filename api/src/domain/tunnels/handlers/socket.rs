@@ -1,6 +1,6 @@
 use crate::domain::tunnels::socket_manager::SOCKET_MANAGER;
 use axum::extract::ws::{Message, WebSocket};
-use common::dto::tunnel::TunnelResponse;
+use common::dto::proxy::ProxyResponse;
 use entity::entities::tunnel;
 use futures_util::{SinkExt, StreamExt};
 use sea_orm::{DatabaseConnection, EntityTrait};
@@ -29,7 +29,7 @@ pub async fn handler(db: DatabaseConnection, socket: WebSocket, tunnel_id: Strin
 
     tokio::spawn(async move {
         while let Some(Ok(message)) = receiver.next().await {
-            let tunnel_response: TunnelResponse =
+            let tunnel_response: ProxyResponse =
                 serde_json::from_str(&message.to_text().unwrap()).unwrap();
             SOCKET_MANAGER
                 .tunnel_responses

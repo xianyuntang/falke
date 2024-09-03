@@ -1,9 +1,9 @@
-use common::dto::auth::{AcquireTunnelResponseDto, SignInRequestDto, SignInResponseDto};
+use common::dto::auth::{AcquireProxyResponseDto, SignInRequestDto, SignInResponseDto};
 use futures_util::{SinkExt, StreamExt};
 
 use crate::services::credential::{read_token, write_token};
 use common::converter::json::json_string_to_header_map;
-use common::dto::tunnel::{TunnelRequest, TunnelResponse};
+use common::dto::proxy::{ProxyRequest, ProxyResponse};
 use reqwest::header::HeaderMap;
 use reqwest::{Body, Client, Method};
 use std::error::Error;
@@ -73,21 +73,18 @@ impl ApiService {
             .send()
             .await?;
 
-        match response.status().is_success() {
-            true => {
-                let response: AcquireTunnelResponseDto = response.json().await?;
-                self.tunnel_id = Option::from(response.id);
-                tracing::info!(
-                    "Proxy on {}://{}",
-                    if self.secure { "https" } else { "http" },
-                    response.proxy_endpoint
-                );
-                Ok(())
-            }
-            false => {
-                tracing::error!("Acquire tunnel failed.");
-                panic!()
-            }
+        if response.status().is_success() {
+            let response: AcquireProxyResponseDto = response.json().await?;
+            self.tunnel_id = Option::from(response.id);
+            tracing::info!(
+                "Proxy on {}://{}",
+                if self.secure { "https" } else { "http" },
+                response.proxy_endpoint
+            );
+            Ok(())
+        } else {
+            tracing::error!("Acquire tunnel failed. {}", response.status());
+            panic!()
         }
     }
 
@@ -129,8 +126,8 @@ impl ApiService {
         message: Message,
         local_host: &str,
         local_port: &u16,
-    ) -> Result<TunnelResponse, Box<dyn Error>> {
-        let tunnel_request: TunnelRequest = serde_json::from_str(&message.to_string())?;
+    ) -> Result<ProxyResponse, Box<dyn Error>> {
+        let tunnel_request: ProxyRequest = serde_json::from_str(&message.to_string())?;
 
         let method = Method::from_str(&tunnel_request.method)?;
         let headers = json_string_to_header_map(tunnel_request.headers)?;
@@ -139,7 +136,7 @@ impl ApiService {
 
         let url = Url::parse(&format!(
             "http://{local_host}:{local_port}/{}",
-            tunnel_request.upgrade
+            tunnel_request.path
         ))?;
 
         tracing::info!("Redirect request {} to {} ", method.as_str(), url.as_str());
@@ -156,7 +153,7 @@ impl ApiService {
         let response_status = response.status();
         let response_body = response.bytes().await?;
 
-        let tunnel_response = TunnelResponse::new(
+        let tunnel_response = ProxyResponse::new(
             &tunnel_request.id.clone(),
             response_headers,
             response_status,

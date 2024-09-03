@@ -1,4 +1,5 @@
 use chrono::{Duration, Utc};
+use jsonwebtoken::errors::Error;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData};
 use serde::{Deserialize, Serialize};
 
@@ -9,7 +10,7 @@ pub struct Claims {
     exp: u64,
 }
 
-pub fn sign_jwt(secret: &str, id: &str) -> String {
+pub fn sign_jwt(secret: &str, id: &str) -> Result<String, Error> {
     let iat = Utc::now();
     let exp = iat + Duration::days(7);
     let claims = Claims {
@@ -17,20 +18,20 @@ pub fn sign_jwt(secret: &str, id: &str) -> String {
         iat: iat.timestamp() as u64,
         exp: exp.timestamp() as u64,
     };
-    encode(
+
+    Ok(encode(
         &Header::default(),
         &claims,
         &EncodingKey::from_secret(secret.as_ref()),
-    )
-    .unwrap()
+    )?)
 }
 
-pub fn verify(secret: &str, token: &str) -> String {
+pub fn verify(secret: &str, token: &str) -> Result<String, Error> {
     let token: TokenData<Claims> = decode(
         &token,
         &DecodingKey::from_secret(secret.as_ref()),
         &Default::default(),
-    )
-    .unwrap();
-    token.claims.sub
+    )?;
+
+    Ok(token.claims.sub)
 }

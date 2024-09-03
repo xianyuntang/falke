@@ -32,7 +32,7 @@ pub struct SignInResponseDto {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct AcquireTunnelResponseDto {
+pub struct AcquireProxyResponseDto {
     pub id: String,
     pub proxy_endpoint: String,
     pub created_at: String,

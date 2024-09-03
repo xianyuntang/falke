@@ -1,8 +1,10 @@
 use crate::infrastructure::response::JsonResponse;
+use axum::http;
 use axum::http::status::InvalidStatusCode;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use bcrypt::BcryptError;
+use jsonwebtoken;
 use reqwest;
 use sea_orm::DbErr;
 use serde_json::json;
@@ -22,6 +24,8 @@ pub enum ApiError {
     JsonError(serde_json::Error),
     ParserError(url::ParseError),
     ReqError(reqwest::Error),
+    JsonwebtokenError(jsonwebtoken::errors::Error),
+    HttpError(http::Error),
 }
 
 impl IntoResponse for ApiError {
@@ -42,6 +46,8 @@ impl IntoResponse for ApiError {
             ApiError::JsonError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
             ApiError::ParserError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
             ApiError::ReqError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            ApiError::JsonwebtokenError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            ApiError::HttpError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
         }
     }
 }
@@ -103,6 +109,20 @@ impl From<url::ParseError> for ApiError {
 
 impl From<reqwest::Error> for ApiError {
     fn from(error: reqwest::Error) -> Self {
+        tracing::error!("{}", error);
+        Self::InternalServerError
+    }
+}
+
+impl From<jsonwebtoken::errors::Error> for ApiError {
+    fn from(error: jsonwebtoken::errors::Error) -> Self {
+        tracing::error!("{}", error);
+        Self::InternalServerError
+    }
+}
+
+impl From<http::Error> for ApiError {
+    fn from(error: http::Error) -> Self {
         tracing::error!("{}", error);
         Self::InternalServerError
     }

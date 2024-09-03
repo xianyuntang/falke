@@ -27,7 +27,7 @@ pub async fn handler(
         return Err(ApiError::UnauthorizedError);
     }
 
-    let access_token = sign_jwt(&settings.api_secret, exist.id.as_str());
+    let access_token = sign_jwt(&settings.api_secret, exist.id.as_str())?;
 
     Ok(json!({"access_token": access_token}))
 }

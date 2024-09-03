@@ -1,13 +1,12 @@
 use crate::domain::auth::jwt_validator::verify;
 use crate::infrastructure::server::AppState;
-use axum::body::{Body, Bytes};
+use axum::body::Bytes;
 use axum::extract::ws::WebSocketUpgrade;
 use axum::extract::{Path, State};
-use axum::http::{HeaderMap, Method, StatusCode};
-use axum::response::{IntoResponse, Response};
+use axum::http::{HeaderMap, Method};
+use axum::response::IntoResponse;
 use axum::routing::{any, delete, get, post};
 use axum::Router;
-use common::converter::json::json_string_to_header_map;
 use common::infrastructure::error::ApiError;
 use common::infrastructure::response::JsonResponse;
 use serde::Deserialize;
@@ -51,7 +50,7 @@ async fn acquire_tunnel(
     let user_id = verify(
         &state.settings.api_secret,
         &authorization.unwrap().to_str().unwrap(),
-    );
+    )?;
 
     let response = handlers::acquire_tunnel::handler(state.db, state.settings, &user_id).await?;
 
@@ -80,21 +79,9 @@ async fn proxy(
         path = Option::from("".to_string())
     }
     let response =
-        handlers::proxy::handler(state.db, tunnel_id, path.unwrap(), method, headers, body).await?;
+        handlers::proxy::handler(state.db, tunnel_id, path.unwrap(), method, headers, body)
+            .await?
+            .into_response();
 
-    let response_status_code = StatusCode::from_u16(response.status_code)?;
-    let response_headers = json_string_to_header_map(response.headers)?;
-    let response_body = Body::from(response.body);
-
-    let mut response = Response::builder().status(response_status_code);
-
-    for (name, value) in response_headers {
-        let name = name.unwrap();
-        if name != "transfer-encoding" {
-            response = response.header(name, value.to_str().unwrap());
-        }
-    }
-    let res = response.body(response_body).unwrap();
-
-    Ok(res.into_response())
+    Ok(response)
 }

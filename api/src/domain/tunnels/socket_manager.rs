@@ -1,5 +1,5 @@
 use axum::extract::ws::{Message, WebSocket};
-use common::dto::tunnel::TunnelResponse;
+use common::dto::proxy::ProxyResponse;
 use dashmap::DashMap;
 use futures_util::stream::SplitSink;
 use std::sync::{Arc, LazyLock};
@@ -9,7 +9,7 @@ pub static SOCKET_MANAGER: LazyLock<SocketManager> = LazyLock::new(|| SocketMana
 
 pub struct SocketManager {
     pub senders: Arc<DashMap<String, Mutex<SplitSink<WebSocket, Message>>>>,
-    pub tunnel_responses: Arc<DashMap<String, TunnelResponse>>,
+    pub tunnel_responses: Arc<DashMap<String, ProxyResponse>>,
     pub notify: Arc<Notify>,
 }
 
