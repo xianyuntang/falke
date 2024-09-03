@@ -1,5 +1,6 @@
 use crate::infrastructure::response::JsonResponse;
 use axum::http;
+use axum::http::method::InvalidMethod;
 use axum::http::status::InvalidStatusCode;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
@@ -12,6 +13,7 @@ use std::io;
 use url;
 use validator::ValidationErrors;
 
+#[derive(Debug)]
 pub enum ApiError {
     ValidationErrors(ValidationErrors),
     IoError(io::Error),
@@ -26,6 +28,7 @@ pub enum ApiError {
     ReqError(reqwest::Error),
     JsonwebtokenError(jsonwebtoken::errors::Error),
     HttpError(http::Error),
+    InvalidMethod(InvalidMethod),
 }
 
 impl IntoResponse for ApiError {
@@ -48,6 +51,7 @@ impl IntoResponse for ApiError {
             ApiError::ReqError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
             ApiError::JsonwebtokenError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
             ApiError::HttpError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            ApiError::InvalidMethod(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
         }
     }
 }
@@ -124,6 +128,13 @@ impl From<jsonwebtoken::errors::Error> for ApiError {
 impl From<http::Error> for ApiError {
     fn from(error: http::Error) -> Self {
         tracing::error!("{}", error);
+        Self::InternalServerError
+    }
+}
+
+impl From<InvalidMethod> for ApiError {
+    fn from(error: InvalidMethod) -> Self {
+        tracing::error!("{:#?}", error);
         Self::InternalServerError
     }
 }

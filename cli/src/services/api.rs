@@ -1,12 +1,16 @@
-use common::dto::auth::{AcquireProxyResponseDto, SignInRequestDto, SignInResponseDto};
-use futures_util::{SinkExt, StreamExt};
-
 use crate::services::credential::{read_token, write_token};
 use common::converter::json::json_string_to_header_map;
-use common::dto::proxy::{ProxyRequest, ProxyResponse};
+use common::dto::auth::{
+    AcquireProxyResponseDto, SignInRequestDto, SignInResponseDto, ValidateTokenRequestDto,
+    ValidateTokenResponseDto,
+};
+use common::dto::proxy::{IntoProxyResponseAsync, ProxyRequest, ProxyResponse, ReqwestResponse};
+use common::infrastructure::error::ApiError;
+use futures_util::{SinkExt, StreamExt};
 use reqwest::header::HeaderMap;
 use reqwest::{Body, Client, Method};
 use std::error::Error;
+use std::io::Write;
 use std::str::FromStr;
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 use url::Url;
@@ -44,28 +48,22 @@ impl ApiService {
         }
     }
 
-    pub async fn sign_in(&mut self, email: String, password: String) -> Result<(), Box<dyn Error>> {
-        let url = self.build_url("/api/auth/sign-in", "http");
-        let dto = SignInRequestDto { email, password };
-
-        let response = self.client.post(url).json(&dto).send().await?;
-        match response.status().is_success() {
-            true => {
-                let response: SignInResponseDto = response.json().await?;
-                write_token(response.access_token).await?;
-                tracing::info!("Sign in successful.");
-                Ok(())
-            }
-            false => {
-                tracing::error!("Sign in failed.");
-                panic!()
-            }
-        }
-    }
-
     pub async fn acquire_tunnel(&mut self) -> Result<(), Box<dyn Error>> {
+        let mut access_token = read_token().await?;
+        let is_valid = self.validate_token(access_token.clone()).await?;
+
+        if !is_valid {
+            tracing::warn!("Token is invalid, please sign in again.");
+            print!("Enter your email: ");
+            std::io::stdout().flush().unwrap();
+            let mut email = String::new();
+            std::io::stdin().read_line(&mut email).unwrap();
+            let email = email.trim();
+            let password = rpassword::prompt_password("Enter your password: ").unwrap();
+            access_token = self.sign_in(email.to_string(), password.clone()).await?;
+        };
+
         let url = self.build_url("/api/tunnels", "http");
-        let access_token = read_token().await?;
         let response = self
             .client
             .post(url)
@@ -112,7 +110,7 @@ impl ApiService {
                         .await?;
                 }
                 Err(error) => {
-                    tracing::error!("{error}");
+                    tracing::error!("{:#?}", error);
                     panic!()
                 }
             }
@@ -126,17 +124,18 @@ impl ApiService {
         message: Message,
         local_host: &str,
         local_port: &u16,
-    ) -> Result<ProxyResponse, Box<dyn Error>> {
-        let tunnel_request: ProxyRequest = serde_json::from_str(&message.to_string())?;
+    ) -> Result<ProxyResponse, ApiError> {
+        let proxy_request: ProxyRequest = serde_json::from_str(&message.to_string())?;
 
-        let method = Method::from_str(&tunnel_request.method)?;
-        let headers = json_string_to_header_map(tunnel_request.headers)?;
+        let request_id = proxy_request.id.clone();
+        let method = Method::from_str(&proxy_request.method)?;
+        let headers = json_string_to_header_map(proxy_request.headers)?;
 
-        let body = Body::from(tunnel_request.body);
+        let body = Body::from(proxy_request.body);
 
         let url = Url::parse(&format!(
             "http://{local_host}:{local_port}/{}",
-            tunnel_request.path
+            proxy_request.path
         ))?;
 
         tracing::info!("Redirect request {} to {} ", method.as_str(), url.as_str());
@@ -149,18 +148,61 @@ impl ApiService {
             .send()
             .await?;
 
-        let response_headers = response.headers().clone();
-        let response_status = response.status();
-        let response_body = response.bytes().await?;
+        let response = ReqwestResponse::new(response);
 
-        let tunnel_response = ProxyResponse::new(
-            &tunnel_request.id.clone(),
-            response_headers,
-            response_status,
-            response_body,
-        );
+        let res = response.into_proxy_response(request_id).await?;
 
-        Ok(tunnel_response)
+        Ok(res)
+    }
+
+    async fn validate_token(&self, access_token: String) -> Result<bool, Box<dyn Error>> {
+        let url = self.build_url("/api/auth/validate-token", "http");
+        let dto = ValidateTokenRequestDto { access_token };
+
+        let response = self.client.post(url).json(&dto).send().await?;
+
+        if response.status().is_success() {
+            let response: ValidateTokenResponseDto = response.json().await?;
+            Ok(response.is_valid)
+        } else {
+            let status = response.status();
+            let error_message = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            tracing::error!(
+                "Validate token failed. Status: {}. Error: {}",
+                status,
+                error_message
+            );
+            panic!()
+        }
+    }
+
+    async fn sign_in(&mut self, email: String, password: String) -> Result<String, Box<dyn Error>> {
+        let url = self.build_url("/api/auth/sign-in", "http");
+        let dto = SignInRequestDto { email, password };
+
+        let response = self.client.post(url).json(&dto).send().await?;
+
+        if response.status().is_success() {
+            let response: SignInResponseDto = response.json().await?;
+            tracing::info!("Sign in successful.");
+            write_token(&response.access_token).await?;
+            Ok(response.access_token)
+        } else {
+            let status = response.status();
+            let error_message = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            tracing::error!(
+                "Sign in failed. Status: {}. Error: {}",
+                status,
+                error_message
+            );
+            panic!()
+        }
     }
 
     fn build_url(&self, endpoint: &str, protocol: &str) -> Url {

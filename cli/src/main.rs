@@ -18,10 +18,6 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    SignIn {
-        #[clap(short, long)]
-        email: String,
-    },
     Tunnel {
         local_port: u16,
 
@@ -46,16 +42,6 @@ async fn main() {
     };
 
     match &cli.command {
-        Commands::SignIn { email } => {
-            let password = rpassword::prompt_password("Enter your password: ").unwrap();
-            match api_service.sign_in(email.clone(), password.clone()).await {
-                Ok(response) => response,
-                Err(err) => {
-                    tracing::error!("{:#?}", err.to_string());
-                    panic!()
-                }
-            };
-        }
         Commands::Tunnel {
             local_host,
             local_port,

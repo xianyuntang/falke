@@ -38,3 +38,13 @@ pub struct AcquireProxyResponseDto {
     pub created_at: String,
     pub updated_at: String,
 }
+
+#[derive(Debug, Validate, Deserialize, Serialize)]
+pub struct ValidateTokenRequestDto {
+    pub access_token: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ValidateTokenResponseDto {
+    pub is_valid: bool,
+}

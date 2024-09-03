@@ -5,6 +5,7 @@ use axum::body::Bytes;
 use axum::http::{HeaderMap, Method, StatusCode};
 use axum::response::IntoResponse;
 use serde::{Deserialize, Serialize};
+use std::future::Future;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ProxyRequest {
@@ -55,7 +56,7 @@ impl ProxyResponse {
     }
 }
 
-impl axum::response::IntoResponse for ProxyResponse {
+impl IntoResponse for ProxyResponse {
     fn into_response(self) -> axum::response::Response {
         let mut response = axum::response::Response::builder().status(self.status_code);
         let headers = json_string_to_header_map(self.headers).expect("Header format error");
@@ -76,7 +77,14 @@ impl axum::response::IntoResponse for ProxyResponse {
 pub trait IntoResponseAsync {
     fn into_response(
         self,
-    ) -> impl std::future::Future<Output = Result<axum::response::Response, ApiError>> + Send;
+    ) -> impl Future<Output = Result<axum::response::Response, ApiError>> + Send;
+}
+
+pub trait IntoProxyResponseAsync {
+    fn into_proxy_response(
+        self,
+        id: String,
+    ) -> impl Future<Output = Result<ProxyResponse, ApiError>> + Send;
 }
 
 pub struct ReqwestResponse(reqwest::Response);
@@ -106,5 +114,19 @@ impl IntoResponseAsync for ReqwestResponse {
         }
 
         Ok(response.body(response_body)?.into_response())
+    }
+}
+
+impl IntoProxyResponseAsync for ReqwestResponse {
+    async fn into_proxy_response(self, id: String) -> Result<ProxyResponse, ApiError> {
+        let response = self.0;
+        let response_headers = response.headers().clone();
+        let response_status = response.status();
+        let response_body = response.bytes().await?;
+
+        let proxy_response =
+            ProxyResponse::new(&id, response_headers, response_status, response_body);
+
+        Ok(proxy_response)
     }
 }
