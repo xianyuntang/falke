@@ -22,8 +22,8 @@ pub fn create_route() -> Router<AppState> {
             .route("/", post(acquire_tunnel))
             .route("/:tunnel_id/ws", get(ws_handler))
             .route("/:tunnel_id", delete(|| async { "Hello World" }))
-            .route("/:tunnel_id/proxy", any(proxy))
-            .route("/:tunnel_id/proxy/*upgrade", any(proxy)),
+            .route("/:tunnel_id/proxy/", any(proxy))
+            .route("/:tunnel_id/proxy/*path", any(proxy)),
     )
 }
 
@@ -35,7 +35,7 @@ struct WsParams {
 #[derive(Deserialize)]
 struct ProxyParams {
     tunnel_id: String,
-    upgrade: Option<String>,
+    path: Option<String>,
 }
 
 async fn acquire_tunnel(
@@ -69,19 +69,18 @@ async fn ws_handler(
 async fn proxy(
     Path(ProxyParams {
         tunnel_id,
-        mut upgrade,
+        mut path,
     }): Path<ProxyParams>,
     State(state): State<AppState>,
     method: Method,
     headers: HeaderMap,
     body: Bytes,
 ) -> Result<impl IntoResponse, ApiError> {
-    if let None = upgrade {
-        upgrade = Option::from("".to_string())
+    if let None = path {
+        path = Option::from("".to_string())
     }
     let response =
-        handlers::proxy::handler(state.db, tunnel_id, upgrade.unwrap(), method, headers, body)
-            .await?;
+        handlers::proxy::handler(state.db, tunnel_id, path.unwrap(), method, headers, body).await?;
 
     let response_status_code = StatusCode::from_u16(response.status_code)?;
     let response_headers = json_string_to_header_map(response.headers)?;
@@ -89,9 +88,13 @@ async fn proxy(
 
     let mut response = Response::builder().status(response_status_code);
 
-    for (name, value) in response_headers.iter() {
-        response = response.header(name.to_string(), value.to_str().unwrap());
+    for (name, value) in response_headers {
+        let name = name.unwrap();
+        if name != "transfer-encoding" {
+            response = response.header(name, value.to_str().unwrap());
+        }
     }
+    let res = response.body(response_body).unwrap();
 
-    Ok(response.body(response_body).unwrap())
+    Ok(res.into_response())
 }

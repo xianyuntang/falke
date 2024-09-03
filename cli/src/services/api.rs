@@ -27,8 +27,8 @@ impl ApiService {
         Self {
             client,
             server,
-            secure,
             tunnel_id: None,
+            secure,
         }
     }
 
@@ -53,6 +53,7 @@ impl ApiService {
             true => {
                 let response: SignInResponseDto = response.json().await?;
                 write_token(response.access_token).await?;
+                tracing::info!("Sign in successful.");
                 Ok(())
             }
             false => {
@@ -71,11 +72,16 @@ impl ApiService {
             .header("authorization", access_token)
             .send()
             .await?;
+
         match response.status().is_success() {
             true => {
                 let response: AcquireTunnelResponseDto = response.json().await?;
                 self.tunnel_id = Option::from(response.id);
-                tracing::info!("Proxy on {}", response.proxy_endpoint);
+                tracing::info!(
+                    "Proxy on {}://{}",
+                    if self.secure { "https" } else { "http" },
+                    response.proxy_endpoint
+                );
                 Ok(())
             }
             false => {
@@ -146,19 +152,25 @@ impl ApiService {
             .send()
             .await?;
 
+        let response_headers = response.headers().clone();
+        let response_status = response.status();
+        let response_body = response.bytes().await?;
+
         let tunnel_response = TunnelResponse::new(
             &tunnel_request.id.clone(),
-            response.headers().clone(),
-            response.status(),
-            response.bytes().await?,
+            response_headers,
+            response_status,
+            response_body,
         );
+
         Ok(tunnel_response)
     }
 
     fn build_url(&self, endpoint: &str, protocol: &str) -> Url {
-        match self.secure {
-            true => Url::parse(&format!("{}s://{}{endpoint}", protocol, self.server)).unwrap(),
-            false => Url::parse(&format!("{}://{}{endpoint}", protocol, self.server)).unwrap(),
+        if self.secure {
+            Url::parse(&format!("{}s://{}{endpoint}", protocol, self.server)).unwrap()
+        } else {
+            Url::parse(&format!("{}://{}{endpoint}", protocol, self.server)).unwrap()
         }
     }
 }

@@ -12,7 +12,7 @@ use sea_orm::{DatabaseConnection, EntityTrait};
 pub async fn handler(
     db: DatabaseConnection,
     tunnel_id: String,
-    upgrade: String,
+    path: String,
     method: Method,
     headers: HeaderMap,
     body: Bytes,
@@ -26,12 +26,12 @@ pub async fn handler(
     let sender = SOCKET_MANAGER.senders.get(&tunnel_id);
 
     if let Some(sender_ref) = sender {
-        tracing::info!("Redirect request {} to path {}", method.as_str(), &upgrade);
+        tracing::info!("Redirect request {} to path /{}", method.as_str(), &path);
 
         let id = nanoid!();
         let sender_mutex = sender_ref.value();
         let mut sender = sender_mutex.lock().await;
-        let tunnel_request = TunnelRequest::new(&id, &tunnel_id, method, headers, &upgrade, body);
+        let tunnel_request = TunnelRequest::new(&id, &tunnel_id, method, headers, &path, body);
 
         sender
             .send(Message::Text(
@@ -41,11 +41,9 @@ pub async fn handler(
 
         loop {
             SOCKET_MANAGER.notify.notified().await;
-            let tunnel_response = SOCKET_MANAGER.tunnel_responses.remove(&id);
-            if let None = tunnel_response {
-                continue;
+            if let Some(tunnel_response) = SOCKET_MANAGER.tunnel_responses.remove(&id) {
+                return Ok(tunnel_response.1);
             }
-            return Ok(tunnel_response.unwrap().1);
         }
     }
 

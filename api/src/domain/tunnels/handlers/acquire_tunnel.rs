@@ -3,7 +3,6 @@ use common::infrastructure::settings::Settings;
 use entity::entities;
 use sea_orm::{ActiveModelTrait, ActiveValue, DatabaseConnection};
 use serde_json::{json, Value};
-use url::Url;
 
 pub async fn handler(
     db: DatabaseConnection,
@@ -17,11 +16,7 @@ pub async fn handler(
 
     let res = tunnel.insert(&db).await?;
 
-    let proxy_endpoint = Url::parse(&format!(
-        "https://{}.{}",
-        res.id, settings.reverse_proxy_host,
-    ))?
-    .to_string();
+    let proxy_endpoint = &format!("{}.{}", res.id, settings.reverse_proxy_host);
 
     Ok(json!({
         "id": res.id,
