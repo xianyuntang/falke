@@ -17,4 +17,4 @@ COPY --from=builder /app/.env .
 
 USER 1000:1000
 
-CMD ["./subway_api"]
+CMD ["./cli"]
