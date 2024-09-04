@@ -9,7 +9,7 @@ pub static SOCKET_MANAGER: LazyLock<SocketManager> = LazyLock::new(|| SocketMana
 
 pub struct SocketManager {
     pub senders: Arc<DashMap<String, Mutex<SplitSink<WebSocket, Message>>>>,
-    pub tunnel_responses: Arc<DashMap<String, ProxyResponse>>,
+    pub proxy_responses: Arc<DashMap<String, ProxyResponse>>,
     pub notify: Arc<Notify>,
 }
 
@@ -17,7 +17,7 @@ impl SocketManager {
     fn new() -> Self {
         Self {
             senders: Arc::new(DashMap::new()),
-            tunnel_responses: Arc::new(DashMap::new()),
+            proxy_responses: Arc::new(DashMap::new()),
             notify: Arc::new(Notify::new()),
         }
     }

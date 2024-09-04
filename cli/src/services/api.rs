@@ -17,7 +17,7 @@ use url::Url;
 
 pub struct ApiService {
     pub settings: Settings,
-    pub tunnel_id: Option<String>,
+    pub proxy_id: Option<String>,
     pub client: Client,
     pub server: String,
     pub secure: bool,
@@ -33,7 +33,7 @@ impl ApiService {
             settings,
             client,
             server: server.to_string(),
-            tunnel_id: None,
+            proxy_id: None,
             secure,
         }
     }
@@ -50,7 +50,7 @@ impl ApiService {
         }
     }
 
-    pub async fn acquire_tunnel(&mut self) -> Result<(), Box<dyn Error>> {
+    pub async fn acquire_proxy(&mut self) -> Result<(), Box<dyn Error>> {
         let mut access_token = self.settings.read_token(self.server.clone()).await;
         let is_valid = self.validate_token(access_token.clone()).await?;
 
@@ -65,7 +65,7 @@ impl ApiService {
             access_token = self.sign_in(email.to_string(), password.clone()).await?;
         };
 
-        let url = self.build_url("/api/tunnels", "http");
+        let url = self.build_url("/api/proxies", "http");
         let response = self
             .client
             .post(url)
@@ -75,7 +75,7 @@ impl ApiService {
 
         if response.status().is_success() {
             let response: AcquireProxyResponseDto = response.json().await?;
-            self.tunnel_id = Option::from(response.id);
+            self.proxy_id = Option::from(response.id);
             tracing::info!(
                 "Proxy on {}://{}",
                 if self.secure { "https" } else { "http" },
@@ -83,7 +83,7 @@ impl ApiService {
             );
             Ok(())
         } else {
-            tracing::error!("Acquire tunnel failed. {}", response.status());
+            tracing::error!("Acquire proxy failed. {}", response.status());
             panic!()
         }
     }
@@ -94,7 +94,7 @@ impl ApiService {
         local_port: &u16,
     ) -> Result<(), Box<dyn Error>> {
         let url = self.build_url(
-            &format!("/api/tunnels/{}/ws", self.tunnel_id.clone().unwrap()),
+            &format!("/api/proxies/{}/ws", self.proxy_id.clone().unwrap()),
             "ws",
         );
 
@@ -104,10 +104,10 @@ impl ApiService {
 
         while let Some(Ok(message)) = receiver.next().await {
             match self.transport(message, local_host, local_port).await {
-                Ok(tunnel_response) => {
+                Ok(proxy_response) => {
                     sender
                         .send(Message::Text(
-                            serde_json::to_string(&tunnel_response).unwrap(),
+                            serde_json::to_string(&proxy_response).unwrap(),
                         ))
                         .await?;
                 }

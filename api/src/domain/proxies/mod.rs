@@ -11,33 +11,33 @@ use common::infrastructure::error::ApiError;
 use common::infrastructure::response::JsonResponse;
 use serde::Deserialize;
 
-pub mod handlers;
+mod handlers;
 mod socket_manager;
 
 pub fn create_route() -> Router<AppState> {
     Router::new().nest(
-        "/tunnels",
+        "/proxies",
         Router::new()
-            .route("/", post(acquire_tunnel))
-            .route("/:tunnel_id/ws", get(ws_handler))
-            .route("/:tunnel_id", delete(|| async { "Hello World" }))
-            .route("/:tunnel_id/proxy/", any(proxy))
-            .route("/:tunnel_id/proxy/*path", any(proxy)),
+            .route("/", post(acquire_proxy))
+            .route("/:proxy_id/ws", get(ws_handler))
+            .route("/:proxy_id", delete(|| async { "Hello World" }))
+            .route("/:proxy_id/transport/", any(proxy))
+            .route("/:proxy_id/transport/*path", any(proxy)),
     )
 }
 
 #[derive(Deserialize)]
 struct WsParams {
-    tunnel_id: String,
+    proxy_id: String,
 }
 
 #[derive(Deserialize)]
 struct ProxyParams {
-    tunnel_id: String,
+    proxy_id: String,
     path: Option<String>,
 }
 
-async fn acquire_tunnel(
+async fn acquire_proxy(
     State(state): State<AppState>,
     headers: HeaderMap,
 ) -> Result<impl IntoResponse, ApiError> {
@@ -52,7 +52,7 @@ async fn acquire_tunnel(
         &authorization.unwrap().to_str().unwrap(),
     )?;
 
-    let response = handlers::acquire_tunnel::handler(state.db, state.settings, &user_id).await?;
+    let response = handlers::acquire_proxy::handler(state.db, state.settings, &user_id).await?;
 
     Ok(JsonResponse(response))
 }
@@ -60,16 +60,13 @@ async fn acquire_tunnel(
 async fn ws_handler(
     ws: WebSocketUpgrade,
     State(AppState { db, .. }): State<AppState>,
-    Path(WsParams { tunnel_id }): Path<WsParams>,
+    Path(WsParams { proxy_id }): Path<WsParams>,
 ) -> impl IntoResponse {
-    ws.on_upgrade(move |socket| handlers::socket::handler(db, socket, tunnel_id))
+    ws.on_upgrade(move |socket| handlers::socket::handler(db, socket, proxy_id))
 }
 
 async fn proxy(
-    Path(ProxyParams {
-        tunnel_id,
-        mut path,
-    }): Path<ProxyParams>,
+    Path(ProxyParams { proxy_id, mut path }): Path<ProxyParams>,
     State(state): State<AppState>,
     method: Method,
     headers: HeaderMap,
@@ -79,7 +76,7 @@ async fn proxy(
         path = Option::from("".to_string())
     }
     let response =
-        handlers::proxy::handler(state.db, tunnel_id, path.unwrap(), method, headers, body)
+        handlers::proxy::handler(state.db, proxy_id, path.unwrap(), method, headers, body)
             .await?
             .into_response();
 

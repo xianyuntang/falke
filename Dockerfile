@@ -14,7 +14,9 @@ COPY --from=builder /app/target/release/reverse_proxy .
 COPY --from=builder /app/target/release/migration .
 COPY --from=builder /app/target/release/cli .
 COPY --from=builder /app/.env .
+COPY --from=builder /app/entrypoint.sh .
 
-USER 1000:1000
+RUN useradd -ms /bin/bash subway
 
-CMD ["./cli"]
+USER subway
+ENTRYPOINT ["./entrypoint.sh"]

@@ -9,12 +9,12 @@ pub async fn handler(
     settings: Settings,
     user_id: &str,
 ) -> Result<Value, ApiError> {
-    let tunnel = entities::tunnel::ActiveModel {
+    let proxy = entities::proxy::ActiveModel {
         user_id: ActiveValue::Set(user_id.to_string()),
         ..Default::default()
     };
 
-    let res = tunnel.insert(&db).await?;
+    let res = proxy.insert(&db).await?;
 
     let proxy_endpoint = &format!("{}.{}", res.id, settings.reverse_proxy_host);
 

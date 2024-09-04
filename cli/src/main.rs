@@ -19,7 +19,7 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    Proxy {
+    Http {
         local_port: u16,
 
         #[clap(short, long, default_value = "localhost")]
@@ -45,11 +45,11 @@ async fn main() {
     };
 
     match &cli.command {
-        Commands::Proxy {
+        Commands::Http {
             local_host,
             local_port,
         } => {
-            match api_service.acquire_tunnel().await {
+            match api_service.acquire_proxy().await {
                 Ok(response) => response,
                 Err(err) => {
                     tracing::error!("{:#?}", err.to_string());

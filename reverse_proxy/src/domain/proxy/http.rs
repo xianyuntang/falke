@@ -24,8 +24,8 @@ pub async fn handler(
             path.to_string()
         } else {
             let host = host.0.to_string();
-            let tunnel_id = host.split('.').next().unwrap();
-            format!("api/tunnels/{}/proxy/{}", tunnel_id, path)
+            let proxy_id = host.split('.').next().unwrap();
+            format!("api/proxies/{}/transport/{}", proxy_id, path)
         }
     ))?;
 

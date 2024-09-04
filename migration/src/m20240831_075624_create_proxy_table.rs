@@ -2,7 +2,7 @@ use crate::m20240828_174932_create_user_table::User;
 use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveIden)]
-enum Tunnel {
+enum Proxy {
     Table,
     Id,
     CreatedAt,
@@ -21,16 +21,16 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(Tunnel::Table)
+                    .table(Proxy::Table)
                     .if_not_exists()
-                    .col(string(Tunnel::Id).primary_key().string_len(21).not_null())
-                    .col(timestamp_with_time_zone(Tunnel::CreatedAt).default(Expr::cust("now()")))
-                    .col(timestamp_with_time_zone(Tunnel::UpdatedAt).default(Expr::cust("now()")))
-                    .col(string(Tunnel::UserId).string_len(21).not_null())
+                    .col(string(Proxy::Id).primary_key().string_len(21).not_null())
+                    .col(timestamp_with_time_zone(Proxy::CreatedAt).default(Expr::cust("now()")))
+                    .col(timestamp_with_time_zone(Proxy::UpdatedAt).default(Expr::cust("now()")))
+                    .col(string(Proxy::UserId).string_len(21).not_null())
                     .foreign_key(
                         ForeignKey::create()
-                            .name("fk_tunnel_user_id")
-                            .from(Tunnel::Table, Tunnel::UserId)
+                            .name("fk_Proxy_user_id")
+                            .from(Proxy::Table, Proxy::UserId)
                             .to(User::Table, User::Id),
                     )
                     .to_owned(),
@@ -42,7 +42,7 @@ impl MigrationTrait for Migration {
         // Replace the sample below with your own migration scripts
 
         manager
-            .drop_table(Table::drop().table(Tunnel::Table).to_owned())
+            .drop_table(Table::drop().table(Proxy::Table).to_owned())
             .await
     }
 }

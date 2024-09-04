@@ -10,7 +10,7 @@ use std::future::Future;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ProxyRequest {
     pub id: String,
-    pub tunnel_id: String,
+    pub proxy_id: String,
     pub method: String,
     pub headers: String,
     pub path: String,
@@ -20,7 +20,7 @@ pub struct ProxyRequest {
 impl ProxyRequest {
     pub fn new(
         id: &str,
-        tunnel_id: &str,
+        proxy_id: &str,
         method: Method,
         headers: HeaderMap,
         path: &str,
@@ -28,7 +28,7 @@ impl ProxyRequest {
     ) -> Self {
         Self {
             id: id.to_string(),
-            tunnel_id: tunnel_id.to_string(),
+            proxy_id: proxy_id.to_string(),
             method: method.to_string(),
             headers: header_map_to_json_string(headers).unwrap(),
             path: path.to_string(),
