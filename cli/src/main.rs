@@ -19,7 +19,7 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    Tunnel {
+    Proxy {
         local_port: u16,
 
         #[clap(short, long, default_value = "localhost")]
@@ -45,7 +45,7 @@ async fn main() {
     };
 
     match &cli.command {
-        Commands::Tunnel {
+        Commands::Proxy {
             local_host,
             local_port,
         } => {
