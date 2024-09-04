@@ -1,15 +1,16 @@
 mod services;
 
 use crate::services::api::ApiService;
+use crate::services::settings::Settings;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Cli {
-    #[clap(short, long, default_value = "localhost:3000")]
+    #[clap(short, long, default_value = "pysubway.com")]
     server: String,
 
-    #[clap(short, long, default_value = "false")]
+    #[clap(short, long, default_value = "true")]
     use_ssl: bool,
 
     #[command(subcommand)]
@@ -31,12 +32,14 @@ async fn main() {
     tracing_subscriber::fmt().init();
 
     let cli = Cli::parse();
-    let mut api_service = ApiService::new(cli.server, cli.use_ssl);
+    let settings = Settings::new().await;
+
+    let mut api_service = ApiService::new(settings, &cli.server, cli.use_ssl);
 
     match api_service.health_check().await {
         Ok(response) => response,
-        Err(err) => {
-            tracing::error!("{:#?}", err.to_string());
+        Err(..) => {
+            tracing::error!("Cannot connect to server {}", &cli.server);
             panic!()
         }
     };

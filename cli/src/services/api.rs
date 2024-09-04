@@ -1,4 +1,4 @@
-use crate::services::credential::{read_token, write_token};
+use crate::services::settings::Settings;
 use common::converter::json::json_string_to_header_map;
 use common::dto::auth::{
     AcquireProxyResponseDto, SignInRequestDto, SignInResponseDto, ValidateTokenRequestDto,
@@ -16,6 +16,7 @@ use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 use url::Url;
 
 pub struct ApiService {
+    pub settings: Settings,
     pub tunnel_id: Option<String>,
     pub client: Client,
     pub server: String,
@@ -23,14 +24,15 @@ pub struct ApiService {
 }
 
 impl ApiService {
-    pub fn new(server: String, secure: bool) -> Self {
+    pub fn new(settings: Settings, server: &str, secure: bool) -> Self {
         let mut headers = HeaderMap::new();
         headers.insert("x-subway-api", "yes".parse().unwrap());
         let client = Client::builder().default_headers(headers).build().unwrap();
 
         Self {
+            settings,
             client,
-            server,
+            server: server.to_string(),
             tunnel_id: None,
             secure,
         }
@@ -41,15 +43,15 @@ impl ApiService {
 
         match self.client.get(url).send().await {
             Ok(..) => Ok(()),
-            Err(..) => {
-                tracing::error!("Health check failed.");
+            Err(err) => {
+                tracing::error!("Health check failed. {}", err);
                 panic!()
             }
         }
     }
 
     pub async fn acquire_tunnel(&mut self) -> Result<(), Box<dyn Error>> {
-        let mut access_token = read_token().await?;
+        let mut access_token = self.settings.read_token(self.server.clone()).await;
         let is_valid = self.validate_token(access_token.clone()).await?;
 
         if !is_valid {
@@ -188,7 +190,9 @@ impl ApiService {
         if response.status().is_success() {
             let response: SignInResponseDto = response.json().await?;
             tracing::info!("Sign in successful.");
-            write_token(&response.access_token).await?;
+            self.settings
+                .write_token(&self.server, &response.access_token)
+                .await?;
             Ok(response.access_token)
         } else {
             let status = response.status();
