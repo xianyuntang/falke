@@ -34,7 +34,8 @@ where
     E: Into<anyhow::Error>,
 {
     fn from(err: E) -> Self {
-        tracing::error!("{err:#?}");
-        Self::InternalServerError(err.into())
+        let err = err.into();
+        tracing::error!("{:#?}", err);
+        Self::InternalServerError(err)
     }
 }
