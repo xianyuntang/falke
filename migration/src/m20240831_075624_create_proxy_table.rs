@@ -29,7 +29,7 @@ impl MigrationTrait for Migration {
                     .col(string(Proxy::UserId).string_len(21).not_null())
                     .foreign_key(
                         ForeignKey::create()
-                            .name("fk_Proxy_user_id")
+                            .name("fk_proxy_user_id")
                             .from(Proxy::Table, Proxy::UserId)
                             .to(User::Table, User::Id),
                     )
