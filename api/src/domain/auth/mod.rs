@@ -43,12 +43,12 @@ async fn sign_in(
 }
 
 async fn validate_token(
-    State(AppState { settings, .. }): State<AppState>,
+    State(AppState { settings, db }): State<AppState>,
     Json(dto): Json<ValidateTokenRequestDto>,
 ) -> Result<impl IntoResponse, ApiError> {
     dto.validate()?;
 
-    let response = handlers::validate_token::handler(settings, dto).await?;
+    let response = handlers::validate_token::handler(db, settings, dto).await?;
 
     Ok(JsonResponse(response))
 }
