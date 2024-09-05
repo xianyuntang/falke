@@ -1,15 +1,15 @@
 use crate::services::settings::Settings;
+use anyhow::Result;
 use common::converter::json::json_string_to_header_map;
 use common::dto::auth::{
     AcquireProxyResponseDto, SignInRequestDto, SignInResponseDto, ValidateTokenRequestDto,
     ValidateTokenResponseDto,
 };
 use common::dto::proxy::{IntoProxyResponseAsync, ProxyRequest, ProxyResponse, ReqwestResponse};
-use common::infrastructure::error::ApiError;
 use futures_util::{SinkExt, StreamExt};
 use reqwest::header::HeaderMap;
+use reqwest::redirect::Policy;
 use reqwest::{Body, Client, Method};
-use std::error::Error;
 use std::io::Write;
 use std::str::FromStr;
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
@@ -27,7 +27,11 @@ impl ApiService {
     pub fn new(settings: Settings, server: &str, secure: bool) -> Self {
         let mut headers = HeaderMap::new();
         headers.insert("x-subway-api", "yes".parse().unwrap());
-        let client = Client::builder().default_headers(headers).build().unwrap();
+        let client = Client::builder()
+            .default_headers(headers)
+            .redirect(Policy::none())
+            .build()
+            .unwrap();
 
         Self {
             settings,
@@ -38,7 +42,7 @@ impl ApiService {
         }
     }
 
-    pub async fn health_check(&self) -> Result<(), Box<dyn Error>> {
+    pub async fn health_check(&self) -> Result<()> {
         let url = self.build_url("/api/ping", "http");
 
         match self.client.get(url).send().await {
@@ -50,7 +54,7 @@ impl ApiService {
         }
     }
 
-    pub async fn acquire_proxy(&mut self) -> Result<(), Box<dyn Error>> {
+    pub async fn acquire_proxy(&mut self) -> Result<()> {
         let mut access_token = self.settings.read_token(self.server.clone()).await;
         let is_valid = self.validate_token(access_token.clone()).await?;
 
@@ -88,32 +92,25 @@ impl ApiService {
         }
     }
 
-    pub async fn start_proxy(
-        &self,
-        local_host: &str,
-        local_port: &u16,
-    ) -> Result<(), Box<dyn Error>> {
+    pub async fn start_proxy(&self, endpoint: &str) -> Result<()> {
         let url = self.build_url(
             &format!("/api/proxies/{}/ws", self.proxy_id.clone().unwrap()),
             "ws",
         );
 
-        let (ws_stream, _) = connect_async(url.as_str()).await.unwrap();
+        let (ws_stream, _) = connect_async(url.as_str()).await?;
 
         let (mut sender, mut receiver) = ws_stream.split();
 
         while let Some(Ok(message)) = receiver.next().await {
-            match self.transport(message, local_host, local_port).await {
+            match self.transport(message, endpoint).await {
                 Ok(proxy_response) => {
                     sender
-                        .send(Message::Text(
-                            serde_json::to_string(&proxy_response).unwrap(),
-                        ))
+                        .send(Message::Text(serde_json::to_string(&proxy_response)?))
                         .await?;
                 }
                 Err(error) => {
                     tracing::error!("{:#?}", error);
-                    panic!()
                 }
             }
         }
@@ -121,12 +118,7 @@ impl ApiService {
         Ok(())
     }
 
-    async fn transport(
-        &self,
-        message: Message,
-        local_host: &str,
-        local_port: &u16,
-    ) -> Result<ProxyResponse, ApiError> {
+    async fn transport(&self, message: Message, endpoint: &str) -> Result<ProxyResponse> {
         let proxy_request: ProxyRequest = serde_json::from_str(&message.to_string())?;
 
         let request_id = proxy_request.id.clone();
@@ -135,16 +127,11 @@ impl ApiService {
 
         let body = Body::from(proxy_request.body);
 
-        let url = Url::parse(&format!(
-            "http://{local_host}:{local_port}/{}",
-            proxy_request.path
-        ))?;
-
-        tracing::info!("Redirect request {} to {} ", method.as_str(), url.as_str());
+        let endpoint = self.build_local_url(endpoint, &proxy_request.path);
 
         let response = self
             .client
-            .request(method, url)
+            .request(method.clone(), endpoint)
             .headers(headers)
             .body(body)
             .send()
@@ -154,10 +141,17 @@ impl ApiService {
 
         let res = response.into_proxy_response(request_id).await?;
 
+        tracing::info!(
+            "{} {}: /{} ",
+            &res.status_code,
+            method.as_str(),
+            &proxy_request.path
+        );
+
         Ok(res)
     }
 
-    async fn validate_token(&self, access_token: String) -> Result<bool, Box<dyn Error>> {
+    async fn validate_token(&self, access_token: String) -> Result<bool> {
         let url = self.build_url("/api/auth/validate-token", "http");
         let dto = ValidateTokenRequestDto { access_token };
 
@@ -181,7 +175,7 @@ impl ApiService {
         }
     }
 
-    async fn sign_in(&mut self, email: String, password: String) -> Result<String, Box<dyn Error>> {
+    async fn sign_in(&mut self, email: String, password: String) -> Result<String> {
         let url = self.build_url("/api/auth/sign-in", "http");
         let dto = SignInRequestDto { email, password };
 
@@ -214,6 +208,14 @@ impl ApiService {
             Url::parse(&format!("{}s://{}{endpoint}", protocol, self.server)).unwrap()
         } else {
             Url::parse(&format!("{}://{}{endpoint}", protocol, self.server)).unwrap()
+        }
+    }
+
+    fn build_local_url(&self, endpoint: &str, path: &str) -> Url {
+        if !endpoint.starts_with("http") {
+            Url::parse(&format!("http://{endpoint}/{path}")).unwrap()
+        } else {
+            Url::parse(&format!("{endpoint}/{path}")).unwrap()
         }
     }
 }

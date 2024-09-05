@@ -1,5 +1,5 @@
 use crate::converter::json::{header_map_to_json_string, json_string_to_header_map};
-use crate::infrastructure::error::ApiError;
+use anyhow::Result;
 use axum::body::Body;
 use axum::body::Bytes;
 use axum::http::{HeaderMap, Method, StatusCode};
@@ -75,16 +75,11 @@ impl IntoResponse for ProxyResponse {
     }
 }
 pub trait IntoResponseAsync {
-    fn into_response(
-        self,
-    ) -> impl Future<Output = Result<axum::response::Response, ApiError>> + Send;
+    fn into_response(self) -> impl Future<Output = Result<axum::response::Response>> + Send;
 }
 
 pub trait IntoProxyResponseAsync {
-    fn into_proxy_response(
-        self,
-        id: String,
-    ) -> impl Future<Output = Result<ProxyResponse, ApiError>> + Send;
+    fn into_proxy_response(self, id: String) -> impl Future<Output = Result<ProxyResponse>> + Send;
 }
 
 pub struct ReqwestResponse(reqwest::Response);
@@ -96,7 +91,7 @@ impl ReqwestResponse {
 }
 
 impl IntoResponseAsync for ReqwestResponse {
-    async fn into_response(self) -> Result<axum::response::Response, ApiError> {
+    async fn into_response(self) -> Result<axum::response::Response> {
         let reqwest_response = self.0;
 
         let response_status = reqwest_response.status().clone();
@@ -118,7 +113,7 @@ impl IntoResponseAsync for ReqwestResponse {
 }
 
 impl IntoProxyResponseAsync for ReqwestResponse {
-    async fn into_proxy_response(self, id: String) -> Result<ProxyResponse, ApiError> {
+    async fn into_proxy_response(self, id: String) -> Result<ProxyResponse> {
         let response = self.0;
         let response_headers = response.headers().clone();
         let response_status = response.status();

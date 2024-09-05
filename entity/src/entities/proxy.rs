@@ -2,7 +2,6 @@
 
 use nanoid::nanoid;
 use sea_orm::entity::prelude::*;
-use sea_orm::prelude::async_trait::async_trait;
 use sea_orm::ActiveValue::Set;
 use serde::Serialize;
 
@@ -34,7 +33,6 @@ impl Related<super::user::Entity> for Entity {
     }
 }
 
-#[async_trait]
 impl ActiveModelBehavior for ActiveModel {
     fn new() -> Self {
         Self {

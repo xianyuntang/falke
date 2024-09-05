@@ -1,4 +1,5 @@
 use crate::domain::proxies::socket_manager::SOCKET_MANAGER;
+use anyhow::Result;
 use axum::body::Bytes;
 use axum::extract::ws::Message;
 use axum::http::{HeaderMap, Method};

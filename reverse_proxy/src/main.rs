@@ -1,9 +1,12 @@
 mod domain;
 mod infrastructure;
 
+use axum::extract::Request;
+use axum::ServiceExt;
 use common::infrastructure::settings::Settings;
 use infrastructure::server;
-use std::net::SocketAddr;
+use tower_http::normalize_path::NormalizePathLayer;
+use tower_layer::Layer;
 
 #[tokio::main]
 async fn main() {
@@ -12,6 +15,8 @@ async fn main() {
     let settings = Settings::new();
 
     let app = server::make_app(settings.clone());
+
+    let app = NormalizePathLayer::trim_trailing_slash().layer(app);
 
     let listener =
         tokio::net::TcpListener::bind(format!("0.0.0.0:{}", settings.reverse_proxy_port))
@@ -22,10 +27,7 @@ async fn main() {
         "Application is running on http://0.0.0.0:{}",
         settings.reverse_proxy_port
     );
-    axum::serve(
-        listener,
-        app.into_make_service_with_connect_info::<SocketAddr>(),
-    )
-    .await
-    .unwrap();
+    axum::serve(listener, ServiceExt::<Request>::into_make_service(app))
+        .await
+        .unwrap();
 }

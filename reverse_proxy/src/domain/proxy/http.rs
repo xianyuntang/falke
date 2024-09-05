@@ -1,8 +1,10 @@
+use anyhow::Result;
 use axum::body::Bytes;
 use axum::extract::Host;
 use axum::http::HeaderMap;
-use common::dto::proxy::ReqwestResponse;
-use common::infrastructure::error::ApiError;
+use axum::response::Response;
+use common::dto::proxy::{IntoResponseAsync, ReqwestResponse};
+use reqwest::redirect::Policy;
 use reqwest::Method;
 use url::Url;
 
@@ -14,8 +16,10 @@ pub async fn handler(
     body: Bytes,
     api_endpoint: String,
     api: bool,
-) -> Result<ReqwestResponse, ApiError> {
-    let client = reqwest::Client::new();
+) -> Result<Response> {
+    let client = reqwest::Client::builder()
+        .redirect(Policy::none())
+        .build()?;
 
     let url = Url::parse(&format!(
         "http://{}/{}",
@@ -29,14 +33,16 @@ pub async fn handler(
         }
     ))?;
 
-    tracing::info!("Proxy HTTP request {method} to {}", url.as_str());
-
     let response = client
-        .request(method, url.as_str())
+        .request(method.clone(), url.clone())
         .headers(headers)
         .body(body)
         .send()
         .await?;
 
-    Ok(ReqwestResponse::new(response))
+    let response = ReqwestResponse::new(response).into_response().await?;
+
+    tracing::info!("{} {method} {}", &response.status(), url.as_str());
+
+    Ok(response)
 }

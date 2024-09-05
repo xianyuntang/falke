@@ -2,7 +2,6 @@
 
 use nanoid::nanoid;
 use sea_orm::entity::prelude::*;
-use sea_orm::prelude::async_trait::async_trait;
 use sea_orm::Set;
 use serde::Serialize;
 
@@ -21,7 +20,6 @@ pub struct Model {
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {}
 
-#[async_trait]
 impl ActiveModelBehavior for ActiveModel {
     fn new() -> Self {
         Self {

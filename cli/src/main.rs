@@ -10,7 +10,7 @@ struct Cli {
     #[clap(short, long, default_value = "pysubway.com")]
     server: String,
 
-    #[clap(short, long, default_value = "true")]
+    #[clap(short, long, default_value = "false")]
     use_ssl: bool,
 
     #[command(subcommand)]
@@ -19,12 +19,7 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    Http {
-        local_port: u16,
-
-        #[clap(short, long, default_value = "localhost")]
-        local_host: String,
-    },
+    Http { endpoint: String },
 }
 
 #[tokio::main]
@@ -45,10 +40,7 @@ async fn main() {
     };
 
     match &cli.command {
-        Commands::Http {
-            local_host,
-            local_port,
-        } => {
+        Commands::Http { endpoint } => {
             match api_service.acquire_proxy().await {
                 Ok(response) => response,
                 Err(err) => {
@@ -57,7 +49,7 @@ async fn main() {
                 }
             };
 
-            match api_service.start_proxy(local_host, local_port).await {
+            match api_service.start_proxy(endpoint).await {
                 Ok(response) => response,
                 Err(err) => {
                     tracing::error!("{:#?}", err.to_string());

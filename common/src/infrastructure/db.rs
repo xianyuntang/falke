@@ -1,7 +1,11 @@
-use sea_orm::{Database, DatabaseConnection};
+use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 
 pub async fn connect(url: &String) -> DatabaseConnection {
-    Database::connect(url)
+    let mut opt = ConnectOptions::new(url);
+    opt.sqlx_logging(false)
+        .sqlx_logging_level(log::LevelFilter::Debug);
+
+    Database::connect(opt)
         .await
         .unwrap_or_else(|err| panic!("{}", err))
 }

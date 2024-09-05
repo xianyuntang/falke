@@ -43,21 +43,14 @@ async fn proxy(
         let response: Response;
         if let Some(reverse_proxy_api) = headers.get("x-subway-api") {
             if reverse_proxy_api.to_str().unwrap() == "yes" {
-                response = http::handler(method, host, path, headers, body, api_endpoint, true)
-                    .await?
-                    .into_response()
-                    .await?;
+                response =
+                    http::handler(method, host, path, headers, body, api_endpoint, true).await?
             } else {
-                response = http::handler(method, host, path, headers, body, api_endpoint, false)
-                    .await?
-                    .into_response()
-                    .await?;
+                response =
+                    http::handler(method, host, path, headers, body, api_endpoint, false).await?
             }
         } else {
-            response = http::handler(method, host, path, headers, body, api_endpoint, false)
-                .await?
-                .into_response()
-                .await?;
+            response = http::handler(method, host, path, headers, body, api_endpoint, false).await?
         }
 
         Ok(response)

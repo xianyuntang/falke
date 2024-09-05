@@ -1,6 +1,6 @@
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::error::Error;
 use std::path::Path;
 use tokio::fs;
 
@@ -55,11 +55,7 @@ impl Settings {
         access_token
     }
 
-    pub async fn write_token(
-        &mut self,
-        server: &str,
-        access_token: &str,
-    ) -> Result<(), Box<dyn Error>> {
+    pub async fn write_token(&mut self, server: &str, access_token: &str) -> Result<()> {
         let new_credential = Credential {
             name: server.to_string(),
             access_token: access_token.to_string(),

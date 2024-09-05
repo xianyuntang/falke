@@ -21,7 +21,7 @@ pub fn create_route() -> Router<AppState> {
             .route("/", post(acquire_proxy))
             .route("/:proxy_id/ws", get(ws_handler))
             .route("/:proxy_id", delete(|| async { "Hello World" }))
-            .route("/:proxy_id/transport/", any(proxy))
+            .route("/:proxy_id/transport", any(proxy))
             .route("/:proxy_id/transport/*path", any(proxy)),
     )
 }
@@ -75,6 +75,7 @@ async fn proxy(
     if let None = path {
         path = Option::from("".to_string())
     }
+
     let response =
         handlers::proxy::handler(state.db, proxy_id, path.unwrap(), method, headers, body)
             .await?
