@@ -18,6 +18,7 @@ use url::Url;
 pub struct ApiService {
     pub settings: Settings,
     pub proxy_id: Option<String>,
+    pub proxy_client: Client,
     pub client: Client,
     pub server: String,
     pub secure: bool,
@@ -27,14 +28,17 @@ impl ApiService {
     pub fn new(settings: Settings, server: &str, secure: bool) -> Self {
         let mut headers = HeaderMap::new();
         headers.insert("x-subway-api", "yes".parse().unwrap());
-        let client = Client::builder()
-            .default_headers(headers)
+        let proxy_client = Client::builder()
+            .default_headers(headers.clone())
             .redirect(Policy::none())
             .build()
             .unwrap();
 
+        let client = Client::builder().default_headers(headers).build().unwrap();
+
         Self {
             settings,
+            proxy_client,
             client,
             server: server.to_string(),
             proxy_id: None,
@@ -130,7 +134,7 @@ impl ApiService {
         let endpoint = self.build_local_url(endpoint, &proxy_request.path);
 
         let response = self
-            .client
+            .proxy_client
             .request(method.clone(), endpoint)
             .headers(headers)
             .body(body)

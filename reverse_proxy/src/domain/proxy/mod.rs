@@ -8,7 +8,6 @@ use axum::http::HeaderMap;
 use axum::response::{IntoResponse, Response};
 use axum::routing::any;
 use axum::Router;
-use common::dto::proxy::IntoResponseAsync;
 use common::infrastructure::error::ApiError;
 use reqwest::Method;
 use serde::Deserialize;
