@@ -103,7 +103,7 @@ impl IntoResponseAsync for ReqwestResponse {
         for (name, value) in response_headers {
             if let Some(name) = name {
                 if name != "transfer-encoding" {
-                    response = response.header(name, value.to_str().unwrap());
+                    response = response.header(name, value.to_str()?);
                 }
             }
         }

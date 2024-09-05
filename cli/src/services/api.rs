@@ -28,11 +28,7 @@ impl ApiService {
     pub fn new(settings: Settings, server: &str, secure: bool) -> Self {
         let mut headers = HeaderMap::new();
         headers.insert("x-subway-api", "yes".parse().unwrap());
-        let proxy_client = Client::builder()
-            .default_headers(headers.clone())
-            .redirect(Policy::none())
-            .build()
-            .unwrap();
+        let proxy_client = Client::builder().redirect(Policy::none()).build().unwrap();
 
         let client = Client::builder().default_headers(headers).build().unwrap();
 
@@ -144,7 +140,6 @@ impl ApiService {
         let response = ReqwestResponse::new(response);
 
         let res = response.into_proxy_response(request_id).await?;
-
         tracing::info!(
             "{} {}: /{} ",
             &res.status_code,
