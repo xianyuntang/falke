@@ -27,7 +27,7 @@ pub async fn handler(
     let sender = SOCKET_MANAGER.senders.get(&proxy_id);
 
     if let Some(sender_ref) = sender {
-        tracing::info!("Redirect request {} to path /{}", method.as_str(), &path);
+        tracing::info!("Redirect request {} to path {}", method.as_str(), &path);
 
         let id = nanoid!();
         let sender_mutex = sender_ref.value();

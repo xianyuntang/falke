@@ -163,7 +163,6 @@ dependencies = [
  "jsonwebtoken",
  "nanoid",
  "random_word",
- "regex",
  "sea-orm",
  "serde",
  "serde_json",

@@ -3,7 +3,7 @@ mod ws;
 
 use crate::infrastructure::server::AppState;
 use axum::body::Bytes;
-use axum::extract::{Host, Path, State, WebSocketUpgrade};
+use axum::extract::{Host, OriginalUri, State, WebSocketUpgrade};
 use axum::http::HeaderMap;
 use axum::response::{IntoResponse, Response};
 use axum::routing::any;
@@ -18,21 +18,16 @@ pub fn create_route() -> Router<AppState> {
         .route("/", any(proxy))
 }
 
-#[derive(Deserialize)]
-struct WsParams {
-    path: Option<String>,
-}
-
 async fn proxy(
     ws: Option<WebSocketUpgrade>,
     State(AppState { settings }): State<AppState>,
-    Path(WsParams { path }): Path<WsParams>,
+    OriginalUri(uri): OriginalUri,
     method: Method,
     host: Host,
     headers: HeaderMap,
     body: Bytes,
 ) -> Result<impl IntoResponse, ApiError> {
-    let path = path.unwrap_or_else(|| "".parse().unwrap());
+    let path = uri.to_string();
 
     let api_endpoint = format!("{}:{}", settings.api_host, settings.api_port);
 

@@ -136,7 +136,6 @@ impl ApiService {
         let body = Body::from(proxy_request.body);
 
         let endpoint = self.build_local_url(endpoint, &proxy_request.path);
-
         let response = self
             .proxy_client
             .request(method.clone(), endpoint)
@@ -149,7 +148,7 @@ impl ApiService {
 
         let res = response.into_proxy_response(request_id).await?;
         tracing::info!(
-            "{} {}: /{} ",
+            "{} {}: {} ",
             &res.status_code,
             method.as_str(),
             &proxy_request.path

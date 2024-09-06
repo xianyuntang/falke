@@ -2,7 +2,7 @@ use crate::domain::auth::jwt_validator::verify;
 use crate::infrastructure::server::AppState;
 use axum::body::Bytes;
 use axum::extract::ws::WebSocketUpgrade;
-use axum::extract::{Json, Path, State};
+use axum::extract::{Json, Path, Query, State};
 use axum::http::{HeaderMap, Method};
 use axum::response::IntoResponse;
 use axum::routing::{any, delete, get, post};
@@ -11,6 +11,7 @@ use common::dto::proxy::AcquireProxyRequestDto;
 use common::infrastructure::error::ApiError;
 use common::infrastructure::response::JsonResponse;
 use serde::Deserialize;
+use std::collections::HashMap;
 
 mod handlers;
 mod socket_manager;
@@ -64,13 +65,24 @@ async fn ws_handler(
 }
 
 async fn proxy(
-    Path(ProxyParams { proxy_id, path }): Path<ProxyParams>,
     State(state): State<AppState>,
+    Path(ProxyParams { proxy_id, path }): Path<ProxyParams>,
+    Query(params): Query<HashMap<String, String>>,
     method: Method,
     headers: HeaderMap,
     body: Bytes,
 ) -> Result<impl IntoResponse, ApiError> {
-    let path = path.unwrap_or_else(|| "".to_string());
+    let mut path = path.unwrap_or_else(|| "".to_string());
+
+    if !params.is_empty() {
+        path += "?";
+
+        for (key, value) in params.iter() {
+            path += &format!("{key}={value}&")
+        }
+
+        path.pop();
+    };
 
     let response = handlers::proxy::handler(state.db, proxy_id, path, method, headers, body)
         .await?

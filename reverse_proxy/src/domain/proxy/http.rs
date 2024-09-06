@@ -22,14 +22,14 @@ pub async fn handler(
         .build()?;
 
     let url = Url::parse(&format!(
-        "http://{}/{}",
+        "http://{}{}",
         api_endpoint,
         if api {
             path.to_string()
         } else {
             let host = host.0.to_string();
             let proxy_id = host.split('.').next().unwrap();
-            format!("api/proxies/{}/transport/{}", proxy_id, path)
+            format!("/api/proxies/{}/transport{}", proxy_id, path)
         }
     ))?;
 

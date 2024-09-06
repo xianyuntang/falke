@@ -6,7 +6,7 @@ use tokio_tungstenite::{connect_async, tungstenite};
 use url::Url;
 
 pub async fn handler(api_endpoint: String, server_ws_stream: WebSocket, path: String) {
-    let url = Url::parse(&format!("ws://{api_endpoint}/{path}"))
+    let url = Url::parse(&format!("ws://{api_endpoint}{path}"))
         .unwrap()
         .to_string();
 
