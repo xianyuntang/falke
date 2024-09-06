@@ -26,3 +26,4 @@ url = "2.5.2"
 anyhow = "1.0.86"
 tower-http = { version = "0.5.2", features = ["normalize-path"] }
 tower-layer = "0.3.3"
+random_word = { version = "0.4.3", features = ["en"] }

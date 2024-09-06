@@ -19,7 +19,12 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    Http { endpoint: String },
+    Http {
+        endpoint: String,
+
+        #[clap(short, long)]
+        subdomain: Option<String>,
+    },
 }
 
 #[tokio::main]
@@ -40,8 +45,11 @@ async fn main() {
     };
 
     match &cli.command {
-        Commands::Http { endpoint } => {
-            match api_service.acquire_proxy().await {
+        Commands::Http {
+            endpoint,
+            subdomain,
+        } => {
+            match api_service.acquire_proxy(subdomain).await {
                 Ok(response) => response,
                 Err(err) => {
                     tracing::error!("{:#?}", err.to_string());

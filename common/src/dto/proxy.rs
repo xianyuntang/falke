@@ -6,6 +6,20 @@ use axum::http::{HeaderMap, Method, StatusCode};
 use axum::response::IntoResponse;
 use serde::{Deserialize, Serialize};
 use std::future::Future;
+use validator::Validate;
+
+#[derive(Debug, Validate, Deserialize, Serialize)]
+pub struct AcquireProxyRequestDto {
+    pub subdomain: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AcquireProxyResponseDto {
+    pub id: String,
+    pub proxy_endpoint: String,
+    pub created_at: String,
+    pub updated_at: String,
+}
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ProxyRequest {

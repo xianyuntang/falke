@@ -5,6 +5,7 @@ use sea_orm_migration::{prelude::*, schema::*};
 enum Proxy {
     Table,
     Id,
+    Subdomain,
     CreatedAt,
     UpdatedAt,
     UserId,
@@ -23,10 +24,10 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Proxy::Table)
                     .if_not_exists()
-                    .col(string(Proxy::Id).primary_key().string_len(21).not_null())
+                    .col(string(Proxy::Id).primary_key().string_len(255))
                     .col(timestamp_with_time_zone(Proxy::CreatedAt).default(Expr::cust("now()")))
                     .col(timestamp_with_time_zone(Proxy::UpdatedAt).default(Expr::cust("now()")))
-                    .col(string(Proxy::UserId).string_len(21).not_null())
+                    .col(string(Proxy::UserId).string_len(21))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_proxy_user_id")

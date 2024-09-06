@@ -8,6 +8,7 @@ use validator::ValidationErrors;
 pub enum ApiError {
     ValidationErrors(ValidationErrors),
     UnauthorizedError,
+    ForbiddenError,
     NotFoundError,
     ConflictError,
     InternalServerError(anyhow::Error),
@@ -22,6 +23,7 @@ impl IntoResponse for ApiError {
             )
                 .into_response(),
             ApiError::UnauthorizedError => StatusCode::UNAUTHORIZED.into_response(),
+            ApiError::ForbiddenError => StatusCode::FORBIDDEN.into_response(),
             ApiError::NotFoundError => StatusCode::NOT_FOUND.into_response(),
             ApiError::ConflictError => StatusCode::CONFLICT.into_response(),
             ApiError::InternalServerError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),

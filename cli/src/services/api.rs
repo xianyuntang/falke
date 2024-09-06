@@ -2,10 +2,12 @@ use crate::services::settings::Settings;
 use anyhow::Result;
 use common::converter::json::json_string_to_header_map;
 use common::dto::auth::{
-    AcquireProxyResponseDto, SignInRequestDto, SignInResponseDto, ValidateTokenRequestDto,
-    ValidateTokenResponseDto,
+    SignInRequestDto, SignInResponseDto, ValidateTokenRequestDto, ValidateTokenResponseDto,
 };
-use common::dto::proxy::{IntoProxyResponseAsync, ProxyRequest, ProxyResponse, ReqwestResponse};
+use common::dto::proxy::{
+    AcquireProxyRequestDto, AcquireProxyResponseDto, IntoProxyResponseAsync, ProxyRequest,
+    ProxyResponse, ReqwestResponse,
+};
 use futures_util::{SinkExt, StreamExt};
 use reqwest::header::HeaderMap;
 use reqwest::redirect::Policy;
@@ -54,26 +56,32 @@ impl ApiService {
         }
     }
 
-    pub async fn acquire_proxy(&mut self) -> Result<()> {
+    pub async fn acquire_proxy(&mut self, subdomain: &Option<String>) -> Result<()> {
         let mut access_token = self.settings.read_token(self.server.clone()).await;
         let is_valid = self.validate_token(access_token.clone()).await?;
 
         if !is_valid {
             tracing::warn!("Token is invalid, please sign in again.");
             print!("Enter your email: ");
-            std::io::stdout().flush().unwrap();
+            std::io::stdout().flush()?;
             let mut email = String::new();
-            std::io::stdin().read_line(&mut email).unwrap();
+            std::io::stdin().read_line(&mut email)?;
             let email = email.trim();
-            let password = rpassword::prompt_password("Enter your password: ").unwrap();
+            let password = rpassword::prompt_password("Enter your password: ")?;
             access_token = self.sign_in(email.to_string(), password.clone()).await?;
         };
 
         let url = self.build_url("/api/proxies", "http");
+
+        let dto = AcquireProxyRequestDto {
+            subdomain: subdomain.clone(),
+        };
+
         let response = self
             .client
             .post(url)
             .header("authorization", access_token)
+            .json(&dto)
             .send()
             .await?;
 

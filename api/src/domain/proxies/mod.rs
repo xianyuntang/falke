@@ -2,11 +2,12 @@ use crate::domain::auth::jwt_validator::verify;
 use crate::infrastructure::server::AppState;
 use axum::body::Bytes;
 use axum::extract::ws::WebSocketUpgrade;
-use axum::extract::{Path, State};
+use axum::extract::{Json, Path, State};
 use axum::http::{HeaderMap, Method};
 use axum::response::IntoResponse;
 use axum::routing::{any, delete, get, post};
 use axum::Router;
+use common::dto::proxy::AcquireProxyRequestDto;
 use common::infrastructure::error::ApiError;
 use common::infrastructure::response::JsonResponse;
 use serde::Deserialize;
@@ -40,19 +41,16 @@ struct ProxyParams {
 async fn acquire_proxy(
     State(state): State<AppState>,
     headers: HeaderMap,
+    Json(dto): Json<AcquireProxyRequestDto>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let authorization = headers.get("authorization");
+    let authorization = headers
+        .get("authorization")
+        .ok_or_else(|| ApiError::UnauthorizedError)?;
 
-    if authorization.is_none() {
-        return Err(ApiError::UnauthorizedError);
-    }
+    let user_id = verify(&state.settings.api_secret, &authorization.to_str().unwrap())?;
 
-    let user_id = verify(
-        &state.settings.api_secret,
-        &authorization.unwrap().to_str().unwrap(),
-    )?;
-
-    let response = handlers::acquire_proxy::handler(state.db, state.settings, &user_id).await?;
+    let response =
+        handlers::acquire_proxy::handler(state.db, state.settings, dto, &user_id).await?;
 
     Ok(JsonResponse(response))
 }
@@ -66,20 +64,17 @@ async fn ws_handler(
 }
 
 async fn proxy(
-    Path(ProxyParams { proxy_id, mut path }): Path<ProxyParams>,
+    Path(ProxyParams { proxy_id, path }): Path<ProxyParams>,
     State(state): State<AppState>,
     method: Method,
     headers: HeaderMap,
     body: Bytes,
 ) -> Result<impl IntoResponse, ApiError> {
-    if let None = path {
-        path = Option::from("".to_string())
-    }
+    let path = path.unwrap_or_else(|| "".to_string());
 
-    let response =
-        handlers::proxy::handler(state.db, proxy_id, path.unwrap(), method, headers, body)
-            .await?
-            .into_response();
+    let response = handlers::proxy::handler(state.db, proxy_id, path, method, headers, body)
+        .await?
+        .into_response();
 
     Ok(response)
 }

@@ -31,14 +31,6 @@ pub struct SignInResponseDto {
     pub access_token: String,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct AcquireProxyResponseDto {
-    pub id: String,
-    pub proxy_endpoint: String,
-    pub created_at: String,
-    pub updated_at: String,
-}
-
 #[derive(Debug, Validate, Deserialize, Serialize)]
 pub struct ValidateTokenRequestDto {
     pub access_token: String,
