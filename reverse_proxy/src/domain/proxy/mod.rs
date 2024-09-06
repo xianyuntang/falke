@@ -10,7 +10,6 @@ use axum::routing::any;
 use axum::Router;
 use common::infrastructure::error::ApiError;
 use reqwest::Method;
-use serde::Deserialize;
 
 pub fn create_route() -> Router<AppState> {
     Router::new()
