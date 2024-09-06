@@ -56,11 +56,19 @@ impl Settings {
     }
 
     pub async fn write_token(&mut self, server: &str, access_token: &str) -> Result<()> {
-        let new_credential = Credential {
-            name: server.to_string(),
-            access_token: access_token.to_string(),
-        };
-        self.credentials.push(new_credential);
+        if let Some(exist_credential) = self
+            .credentials
+            .iter_mut()
+            .find(|credential| credential.name == server)
+        {
+            exist_credential.access_token = access_token.to_string();
+        } else {
+            let new_credential = Credential {
+                name: server.to_string(),
+                access_token: access_token.to_string(),
+            };
+            self.credentials.push(new_credential);
+        }
 
         let credential_string = serde_json::to_string(&json!(&self.credentials))?;
 
