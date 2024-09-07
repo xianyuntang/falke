@@ -10,7 +10,7 @@ use axum::Router;
 use common::infrastructure::error::ApiError;
 use reqwest::Method;
 
-pub fn create_route() -> Router<AppState> {
+pub(crate) fn create_route() -> Router<AppState> {
     Router::new()
         .route("/*path", any(proxy))
         .route("/", any(proxy))

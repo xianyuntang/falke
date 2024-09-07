@@ -10,7 +10,7 @@ use validator::Validate;
 mod handlers;
 pub mod jwt_validator;
 
-pub fn create_route() -> Router<AppState> {
+pub(crate) fn create_route() -> Router<AppState> {
     Router::new().nest(
         "/auth",
         Router::new()

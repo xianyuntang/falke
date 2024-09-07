@@ -9,6 +9,7 @@ use common::dto::proxy::{
     ProxyResponse, ReqwestResponse,
 };
 use futures_util::{SinkExt, StreamExt};
+use http::{HeaderName, HeaderValue};
 use reqwest::header::HeaderMap;
 use reqwest::redirect::Policy;
 use reqwest::{Body, Client, Method};
@@ -29,11 +30,9 @@ pub struct ApiService {
 
 impl ApiService {
     pub fn new(settings: Settings, server: &str, secure: bool) -> Self {
-        let mut headers = HeaderMap::new();
-        headers.insert("x-subway-api", "yes".parse().unwrap());
-        let proxy_client = Client::builder().redirect(Policy::none()).build().unwrap();
-
-        let client = Client::builder().default_headers(headers).build().unwrap();
+        let headers = vec![("x-subway-api".to_string(), "yes".to_string())];
+        let proxy_client = Self::build_client(None);
+        let client = Self::build_client(Some(headers));
 
         Self {
             settings,
@@ -46,15 +45,9 @@ impl ApiService {
     }
 
     pub async fn health_check(&self) -> Result<()> {
-        let url = self.build_url("/api/ping", "http");
-
-        match self.client.get(url).send().await {
-            Ok(..) => Ok(()),
-            Err(err) => {
-                tracing::error!("Health check failed. {}", err);
-                panic!()
-            }
-        }
+        let url = self.build_url("http", "/api/ping");
+        self.client.get(url).send().await?;
+        Ok(())
     }
 
     pub async fn acquire_proxy(&mut self, subdomain: &Option<String>) -> Result<()> {
@@ -72,7 +65,7 @@ impl ApiService {
             access_token = self.sign_in(email.to_string(), password.clone()).await?;
         };
 
-        let url = self.build_url("/api/proxies", "http");
+        let url = self.build_url("http", "/api/proxies");
 
         let dto = AcquireProxyRequestDto {
             subdomain: subdomain.clone(),
@@ -101,12 +94,31 @@ impl ApiService {
         }
     }
 
+    pub async fn release_proxy(&self) -> Result<()> {
+        let url = self.build_url(
+            "http",
+            &format!("/api/proxies/{}", self.proxy_id.clone().unwrap()),
+        );
+
+        let access_token = self.settings.read_token(self.server.clone()).await;
+
+        self.client
+            .post(url)
+            .header("authorization", access_token)
+            .send()
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn start_proxy(&self, endpoint: &str) -> Result<()> {
+        let proxy_id = self
+            .proxy_id
+            .clone()
+            .ok_or(anyhow::Error::msg("No proxy id found"))?;
+
         let url = self
-            .build_url(
-                &format!("/api/proxies/{}/ws", self.proxy_id.clone().unwrap()),
-                "ws",
-            )
+            .build_url("ws", &format!("/api/proxies/{}/ws", proxy_id))
             .to_string()
             .parse::<http::Uri>()?;
 
@@ -166,7 +178,7 @@ impl ApiService {
     }
 
     async fn validate_token(&self, access_token: String) -> Result<bool> {
-        let url = self.build_url("/api/auth/validate-token", "http");
+        let url = self.build_url("http", "/api/auth/validate-token");
         let dto = ValidateTokenRequestDto { access_token };
 
         let response = self.client.post(url).json(&dto).send().await?;
@@ -190,7 +202,7 @@ impl ApiService {
     }
 
     async fn sign_in(&mut self, email: String, password: String) -> Result<String> {
-        let url = self.build_url("/api/auth/sign-in", "http");
+        let url = self.build_url("http", "/api/auth/sign-in");
         let dto = SignInRequestDto { email, password };
 
         let response = self.client.post(url).json(&dto).send().await?;
@@ -217,11 +229,26 @@ impl ApiService {
         }
     }
 
-    fn build_url(&self, endpoint: &str, protocol: &str) -> Url {
+    fn build_client(headers: Option<Vec<(String, String)>>) -> Client {
+        let mut builder = Client::builder().redirect(Policy::none());
+        if let Some(headers) = headers {
+            let mut header_map = HeaderMap::new();
+            for (key, value) in headers {
+                header_map.insert(
+                    HeaderName::try_from(key).unwrap(),
+                    HeaderValue::try_from(value).unwrap(),
+                );
+            }
+            builder = builder.default_headers(header_map);
+        }
+        builder.build().unwrap()
+    }
+
+    fn build_url(&self, protocol: &str, endpoint: &str) -> Url {
         if self.secure {
-            Url::parse(&format!("{}s://{}{endpoint}", protocol, self.server)).unwrap()
+            Url::parse(&format!("{protocol}s://{}{endpoint}", self.server)).unwrap()
         } else {
-            Url::parse(&format!("{}://{}{endpoint}", protocol, self.server)).unwrap()
+            Url::parse(&format!("{protocol}://{}{endpoint}", self.server)).unwrap()
         }
     }
 

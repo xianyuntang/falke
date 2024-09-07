@@ -1,2 +1,2 @@
-pub mod api;
-pub mod settings;
+pub(crate) mod api;
+pub(crate) mod settings;

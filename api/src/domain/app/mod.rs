@@ -3,7 +3,7 @@ use axum::response::{IntoResponse, Json};
 use axum::routing::{get, Router};
 mod handlers;
 
-pub fn create_route() -> Router<AppState> {
+pub(crate) fn create_route() -> Router<AppState> {
     Router::new().route("/ping", get(health_check))
 }
 

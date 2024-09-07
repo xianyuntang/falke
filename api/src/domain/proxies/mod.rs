@@ -12,17 +12,18 @@ use common::infrastructure::error::ApiError;
 use common::infrastructure::response::JsonResponse;
 use regex::Regex;
 use serde::Deserialize;
+use serde_json::json;
 
 mod handlers;
 mod socket_manager;
 
-pub fn create_route() -> Router<AppState> {
+pub(crate) fn create_route() -> Router<AppState> {
     Router::new().nest(
         "/proxies",
         Router::new()
             .route("/", post(acquire_proxy))
             .route("/:proxy_id/ws", get(ws_handler))
-            .route("/:proxy_id", delete(|| async { "Hello World" }))
+            .route("/:proxy_id", delete(release_proxy))
             .route("/:proxy_id/transport", any(proxy))
             .route("/:proxy_id/transport/*path", any(proxy)),
     )
@@ -35,6 +36,11 @@ struct WsParams {
 
 #[derive(Deserialize)]
 struct ProxyParams {
+    proxy_id: String,
+}
+
+#[derive(Deserialize)]
+struct ReleaseProxyParams {
     proxy_id: String,
 }
 
@@ -53,6 +59,22 @@ async fn acquire_proxy(
         handlers::acquire_proxy::handler(state.db, state.settings, dto, &user_id).await?;
 
     Ok(JsonResponse(response))
+}
+
+async fn release_proxy(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Path(ReleaseProxyParams { proxy_id }): Path<ReleaseProxyParams>,
+) -> Result<impl IntoResponse, ApiError> {
+    let authorization = headers
+        .get("authorization")
+        .ok_or_else(|| ApiError::UnauthorizedError)?;
+
+    let user_id = verify(&state.settings.api_secret, &authorization.to_str().unwrap())?;
+
+    handlers::release_proxy::handler(state.db, &proxy_id, &user_id).await?;
+
+    Ok(JsonResponse(json!({"message":"ok"})))
 }
 
 async fn ws_handler(
