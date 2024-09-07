@@ -15,7 +15,7 @@ pub async fn handler(
     headers: HeaderMap,
     body: Bytes,
     api_endpoint: String,
-    api: bool,
+    to_api: bool,
 ) -> Result<Response> {
     let client = reqwest::Client::builder()
         .redirect(Policy::none())
@@ -24,7 +24,7 @@ pub async fn handler(
     let url = Url::parse(&format!(
         "http://{}{}",
         api_endpoint,
-        if api {
+        if to_api {
             path.to_string()
         } else {
             let host = host.0.to_string();

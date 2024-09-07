@@ -163,6 +163,7 @@ dependencies = [
  "jsonwebtoken",
  "nanoid",
  "random_word",
+ "regex",
  "sea-orm",
  "serde",
  "serde_json",
@@ -756,6 +757,7 @@ dependencies = [
  "common",
  "dirs",
  "futures-util",
+ "http",
  "reqwest",
  "rpassword",
  "serde",
@@ -764,6 +766,7 @@ dependencies = [
  "tokio-tungstenite 0.23.1",
  "tracing",
  "tracing-subscriber",
+ "tungstenite 0.24.0",
  "url",
 ]
 
@@ -779,16 +782,13 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
- "bcrypt",
  "dotenv",
- "jsonwebtoken",
  "log",
  "reqwest",
  "sea-orm",
  "serde",
  "serde_json",
  "tracing",
- "tracing-subscriber",
  "url",
  "validator",
 ]
@@ -3809,6 +3809,24 @@ dependencies = [
  "httparse",
  "log",
  "native-tls",
+ "rand",
+ "sha1",
+ "thiserror",
+ "utf-8",
+]
+
+[[package]]
+name = "tungstenite"
+version = "0.24.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18e5b8366ee7a95b16d32197d0b2604b43a0be89dc5fac9f8e96ccafbaedda8a"
+dependencies = [
+ "byteorder",
+ "bytes",
+ "data-encoding",
+ "http",
+ "httparse",
+ "log",
  "rand",
  "sha1",
  "thiserror",

@@ -18,3 +18,5 @@ tokio-tungstenite = { version = "0.23.1", features = ["native-tls"] }
 futures-util = "0.3.30"
 dirs = "5.0.1"
 anyhow = "1.0.86"
+http = "1.1.0"
+tungstenite = "0.24.0"

@@ -1,5 +1,4 @@
-mod http;
-mod ws;
+mod handlers;
 
 use crate::infrastructure::server::AppState;
 use axum::body::Bytes;
@@ -27,29 +26,22 @@ async fn proxy(
     body: Bytes,
 ) -> Result<impl IntoResponse, ApiError> {
     let path = uri.to_string();
+    let to_api = headers
+        .get("x-subway-api")
+        .map(|value| value == "yes")
+        .unwrap_or_else(|| false);
 
     let api_endpoint = format!("{}:{}", settings.api_host, settings.api_port);
 
+    let response: Response;
     if let Some(ws) = ws {
-        Ok(ws.on_upgrade(move |socket| ws::handler(api_endpoint, socket, path)))
+        response = ws.on_upgrade(move |socket| {
+            handlers::ws::handler(socket, host, path, api_endpoint, to_api)
+        })
     } else {
-        let response: Response;
-        if let Some(reverse_proxy_api) = headers.get("x-subway-api") {
-            // To api endpoint
-            if reverse_proxy_api.to_str()? == "yes" {
-                response =
-                    http::handler(method, host, path, headers, body, api_endpoint, true).await?
-            }
-            // To proxy endpoint
-            else {
-                response =
-                    http::handler(method, host, path, headers, body, api_endpoint, false).await?
-            }
-        } else {
-            // To proxy endpoint
-            response = http::handler(method, host, path, headers, body, api_endpoint, false).await?
-        }
-
-        Ok(response)
+        response = handlers::http::handler(method, host, path, headers, body, api_endpoint, to_api)
+            .await?;
     }
+
+    Ok(response)
 }

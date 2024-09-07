@@ -1,7 +1,6 @@
 use crate::infrastructure::server::AppState;
 use axum::response::{IntoResponse, Json};
 use axum::routing::{get, Router};
-
 mod handlers;
 
 pub fn create_route() -> Router<AppState> {

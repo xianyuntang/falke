@@ -1,14 +1,30 @@
-use axum::extract::ws;
 use axum::extract::ws::WebSocket;
+use axum::extract::{ws, Host};
 use futures_util::stream::StreamExt;
 use futures_util::SinkExt;
 use tokio_tungstenite::{connect_async, tungstenite};
 use url::Url;
 
-pub async fn handler(api_endpoint: String, server_ws_stream: WebSocket, path: String) {
-    let url = Url::parse(&format!("ws://{api_endpoint}{path}"))
-        .unwrap()
-        .to_string();
+pub async fn handler(
+    server_ws_stream: WebSocket,
+    host: Host,
+    path: String,
+    api_endpoint: String,
+    to_api: bool,
+) -> () {
+    let url = Url::parse(&format!(
+        "ws://{}{}",
+        api_endpoint,
+        if to_api {
+            path.to_string()
+        } else {
+            let host = host.0.to_string();
+            let proxy_id = host.split('.').next().unwrap();
+            format!("/api/proxies/{}/transport{}", proxy_id, path)
+        }
+    ))
+    .unwrap()
+    .to_string();
 
     tracing::info!("Proxy WebSocket request to {}", url.as_str());
 

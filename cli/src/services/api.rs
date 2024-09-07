@@ -15,6 +15,7 @@ use reqwest::{Body, Client, Method};
 use std::io::Write;
 use std::str::FromStr;
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
+use tungstenite::client::IntoClientRequest;
 use url::Url;
 
 pub struct ApiService {
@@ -101,12 +102,19 @@ impl ApiService {
     }
 
     pub async fn start_proxy(&self, endpoint: &str) -> Result<()> {
-        let url = self.build_url(
-            &format!("/api/proxies/{}/ws", self.proxy_id.clone().unwrap()),
-            "ws",
-        );
+        let url = self
+            .build_url(
+                &format!("/api/proxies/{}/ws", self.proxy_id.clone().unwrap()),
+                "ws",
+            )
+            .to_string()
+            .parse::<http::Uri>()?;
 
-        let (ws_stream, _) = connect_async(url.as_str()).await?;
+        let mut request = url.into_client_request()?;
+
+        request.headers_mut().insert("x-subway-api", "yes".parse()?);
+
+        let (ws_stream, _) = connect_async(request).await?;
 
         let (mut sender, mut receiver) = ws_stream.split();
 
@@ -219,9 +227,9 @@ impl ApiService {
 
     fn build_local_url(&self, endpoint: &str, path: &str) -> Url {
         if !endpoint.starts_with("http") {
-            Url::parse(&format!("http://{endpoint}/{path}")).unwrap()
+            Url::parse(&format!("http://{endpoint}{path}")).unwrap()
         } else {
-            Url::parse(&format!("{endpoint}/{path}")).unwrap()
+            Url::parse(&format!("{endpoint}{path}")).unwrap()
         }
     }
 }

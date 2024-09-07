@@ -2,7 +2,7 @@ use crate::domain::auth::jwt_validator::verify;
 use crate::infrastructure::server::AppState;
 use axum::body::Bytes;
 use axum::extract::ws::WebSocketUpgrade;
-use axum::extract::{Json, Path, Query, State};
+use axum::extract::{Json, OriginalUri, Path, State};
 use axum::http::{HeaderMap, Method};
 use axum::response::IntoResponse;
 use axum::routing::{any, delete, get, post};
@@ -10,8 +10,8 @@ use axum::Router;
 use common::dto::proxy::AcquireProxyRequestDto;
 use common::infrastructure::error::ApiError;
 use common::infrastructure::response::JsonResponse;
+use regex::Regex;
 use serde::Deserialize;
-use std::collections::HashMap;
 
 mod handlers;
 mod socket_manager;
@@ -36,7 +36,6 @@ struct WsParams {
 #[derive(Deserialize)]
 struct ProxyParams {
     proxy_id: String,
-    path: Option<String>,
 }
 
 async fn acquire_proxy(
@@ -66,23 +65,21 @@ async fn ws_handler(
 
 async fn proxy(
     State(state): State<AppState>,
-    Path(ProxyParams { proxy_id, path }): Path<ProxyParams>,
-    Query(params): Query<HashMap<String, String>>,
+    Path(ProxyParams { proxy_id }): Path<ProxyParams>,
+    OriginalUri(uri): OriginalUri,
     method: Method,
     headers: HeaderMap,
     body: Bytes,
 ) -> Result<impl IntoResponse, ApiError> {
-    let mut path = path.unwrap_or_else(|| "".to_string());
+    let re = Regex::new(r"/api/proxies/.+?/transport(.+)")?;
+    let url = uri.to_string();
 
-    if !params.is_empty() {
-        path += "?";
-
-        for (key, value) in params.iter() {
-            path += &format!("{key}={value}&")
-        }
-
-        path.pop();
-    };
+    let path = re
+        .captures(&url)
+        .and_then(|captures| captures.get(1))
+        .map(|m| m.as_str())
+        .unwrap_or_else(|| "/")
+        .to_string();
 
     let response = handlers::proxy::handler(state.db, proxy_id, path, method, headers, body)
         .await?
