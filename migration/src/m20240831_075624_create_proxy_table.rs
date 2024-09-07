@@ -5,7 +5,6 @@ use sea_orm_migration::{prelude::*, schema::*};
 enum Proxy {
     Table,
     Id,
-    Subdomain,
     CreatedAt,
     UpdatedAt,
     UserId,
