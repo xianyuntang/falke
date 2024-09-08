@@ -1,5 +1,7 @@
 use crate::domain::auth::jwt_validator::verify;
 use crate::infrastructure::server::AppState;
+use crate::infrastructure::templates::HtmlTemplate;
+use askama::Template;
 use axum::body::Bytes;
 use axum::extract::ws::WebSocketUpgrade;
 use axum::extract::{Json, OriginalUri, Path, State};
@@ -85,6 +87,10 @@ async fn ws_handler(
     ws.on_upgrade(move |socket| handlers::socket::handler(db, socket, proxy_id))
 }
 
+#[derive(Template)]
+#[template(path = "404.html")]
+pub struct NotfoundTemplate {}
+
 async fn proxy(
     State(state): State<AppState>,
     Path(ProxyParams { proxy_id }): Path<ProxyParams>,
@@ -103,9 +109,8 @@ async fn proxy(
         .unwrap_or_else(|| "/")
         .to_string();
 
-    let response = handlers::proxy::handler(state.db, proxy_id, path, method, headers, body)
-        .await?
-        .into_response();
-
-    Ok(response)
+    match handlers::proxy::handler(state.db, proxy_id, path, method, headers, body).await {
+        Ok(response) => Ok(response.into_response()),
+        Err(_) => Ok(HtmlTemplate(NotfoundTemplate {}).into_response()),
+    }
 }

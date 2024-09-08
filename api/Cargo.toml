@@ -27,3 +27,5 @@ tower-http = { version = "0.5.2", features = ["normalize-path"] }
 tower-layer = "0.3.3"
 random_word = { version = "0.4.3", features = ["en"] }
 regex = "1.10.6"
+askama = "0.12.1"
+askama_axum = "0.4.0"
