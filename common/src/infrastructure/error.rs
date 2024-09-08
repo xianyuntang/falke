@@ -12,6 +12,7 @@ pub enum ApiError {
     NotFoundError,
     ConflictError,
     InternalServerError(anyhow::Error),
+    ProxyClientNotConnectError,
 }
 
 impl IntoResponse for ApiError {
@@ -25,6 +26,7 @@ impl IntoResponse for ApiError {
             ApiError::UnauthorizedError => StatusCode::UNAUTHORIZED.into_response(),
             ApiError::ForbiddenError => StatusCode::FORBIDDEN.into_response(),
             ApiError::NotFoundError => StatusCode::NOT_FOUND.into_response(),
+            ApiError::ProxyClientNotConnectError => StatusCode::NOT_FOUND.into_response(),
             ApiError::ConflictError => StatusCode::CONFLICT.into_response(),
             ApiError::InternalServerError(..) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
         }

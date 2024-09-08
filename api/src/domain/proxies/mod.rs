@@ -88,8 +88,16 @@ async fn ws_handler(
 }
 
 #[derive(Template)]
-#[template(path = "404.html")]
-pub struct NotfoundTemplate {}
+#[template(path = "not_found.html")]
+pub struct NotFoundTemplate {}
+
+#[derive(Template)]
+#[template(path = "internal_server_error.html")]
+pub struct InternalServerErrorTemplate {}
+
+#[derive(Template)]
+#[template(path = "proxy_client_not_connected.html")]
+pub struct ProxyClientNotConnectedTemplate {}
 
 async fn proxy(
     State(state): State<AppState>,
@@ -111,6 +119,12 @@ async fn proxy(
 
     match handlers::proxy::handler(state.db, proxy_id, path, method, headers, body).await {
         Ok(response) => Ok(response.into_response()),
-        Err(_) => Ok(HtmlTemplate(NotfoundTemplate {}).into_response()),
+        Err(error) => match error {
+            ApiError::NotFoundError => Ok(HtmlTemplate(NotFoundTemplate {}).into_response()),
+            ApiError::ProxyClientNotConnectError => {
+                Ok(HtmlTemplate(ProxyClientNotConnectedTemplate {}).into_response())
+            }
+            _ => Ok(HtmlTemplate(InternalServerErrorTemplate {}).into_response()),
+        },
     }
 }

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Proxy Client Not Connected</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #ff6b6b, #f39c12);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 8em;
+            margin: 0;
+            animation: glow 1.5s ease-in-out infinite alternate;
+        }
+
+        h2 {
+            font-size: 2em;
+            margin-top: 20px;
+            animation: fadeIn 2s ease-in-out infinite alternate;
+        }
+
+        p {
+            font-size: 1.2em;
+            margin-top: 10px;
+            color: #ffdddd;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            text-decoration: none;
+            border: 2px solid white;
+            border-radius: 50px;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+
+        a:hover {
+            background: white;
+            color: #f39c12;
+            transform: scale(1.1);
+        }
+
+        @keyframes glow {
+            0% {
+                text-shadow: 0 0 20px #ff6b6b, 0 0 30px #ff6b6b, 0 0 40px #ff6b6b, 0 0 50px #ff6b6b, 0 0 60px #ff6b6b;
+            }
+            100% {
+                text-shadow: 0 0 20px #f39c12, 0 0 30px #f39c12, 0 0 40px #f39c12, 0 0 50px #f39c12, 0 0 60px #f39c12;
+            }
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0.6;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .background-arrows {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .arrow {
+            position: absolute;
+            font-size: 5em;
+            color: rgba(255, 255, 255, 0.2);
+            animation: move 20s infinite ease-in-out;
+        }
+
+        .arrow:nth-child(1) {
+            top: 10%;
+            left: 20%;
+        }
+
+        .arrow:nth-child(2) {
+            top: 50%;
+            left: 70%;
+        }
+
+        .arrow:nth-child(3) {
+            top: 80%;
+            left: 30%;
+        }
+
+        .arrow:nth-child(4) {
+            top: 30%;
+            left: 80%;
+        }
+
+        .arrow:nth-child(5) {
+            top: 15%;
+            left: 50%;
+        }
+
+        .arrow:nth-child(6) {
+            top: 70%;
+            left: 40%;
+        }
+
+        @keyframes move {
+            0% {
+                transform: translateY(0) translateX(0);
+            }
+            50% {
+                transform: translateY(-50px) translateX(-50px);
+            }
+            100% {
+                transform: translateY(0) translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="background-arrows">
+    <div class="arrow">→</div>
+    <div class="arrow">←</div>
+    <div class="arrow">→</div>
+    <div class="arrow">←</div>
+    <div class="arrow">→</div>
+    <div class="arrow">←</div>
+</div>
+
+<div class="container">
+    <h1>404</h1>
+    <h2>Proxy Client Not Connected</h2>
+    <p>It seems like the connection to the client is lost.</p>
+</div>
+</body>
+</html>

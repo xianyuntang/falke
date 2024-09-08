@@ -23,7 +23,6 @@ pub async fn handler(
     if proxy.is_none() {
         return Err(ApiError::NotFoundError);
     }
-
     let sender = SOCKET_MANAGER.senders.get(&proxy_id);
 
     if let Some(sender_ref) = sender {
@@ -36,7 +35,8 @@ pub async fn handler(
 
         sender
             .send(Message::Text(serde_json::to_string(&proxy_request)?))
-            .await?;
+            .await
+            .map_err(|_| ApiError::ProxyClientNotConnectError)?;
 
         loop {
             SOCKET_MANAGER.notify.notified().await;
@@ -46,5 +46,5 @@ pub async fn handler(
         }
     }
 
-    Err(ApiError::NotFoundError)
+    Err(ApiError::ProxyClientNotConnectError)
 }
