@@ -37,12 +37,21 @@ impl ApiService {
 
         if response.status().is_success() {
             let response: AcquireProxyResponseDto = response.json().await?;
-            self.proxy_id = Option::from(response.id);
+
+            let port_str = self
+                .settings
+                .server
+                .port()
+                .map_or("".to_string(), |port| format!(":{}", port));
+
             tracing::info!(
-                "Proxy on {}://{}",
+                "Proxy on {}://{}.{}{}",
                 self.settings.server.scheme(),
-                response.proxy_endpoint
+                &response.id,
+                self.settings.server.domain().unwrap(),
+                port_str
             );
+            self.proxy_id = Option::from(response.id);
             Ok(())
         } else {
             tracing::error!("Acquire proxy failed. {}", response.status());
@@ -60,7 +69,7 @@ impl ApiService {
         let access_token = self.settings.read_token().await;
 
         self.client
-            .post(url)
+            .delete(url)
             .header("authorization", access_token)
             .send()
             .await?;

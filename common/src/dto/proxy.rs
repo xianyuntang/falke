@@ -16,7 +16,6 @@ pub struct AcquireProxyRequestDto {
 #[derive(Debug, Deserialize)]
 pub struct AcquireProxyResponseDto {
     pub id: String,
-    pub proxy_endpoint: String,
     pub created_at: String,
     pub updated_at: String,
 }

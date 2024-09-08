@@ -46,12 +46,10 @@ pub async fn handler(
             ..Default::default()
         };
         let res = new_proxy.insert(&db).await?;
-        let proxy_endpoint = &format!("{}.{}", res.id, settings.reverse_proxy_host);
         Ok(json!({
             "id": res.id,
             "created_at":res.created_at,
             "updated_at":res.updated_at,
-            "proxy_endpoint": proxy_endpoint
         }))
     }
 }
