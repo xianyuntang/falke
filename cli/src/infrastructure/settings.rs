@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::path::Path;
 use tokio::fs;
+use url::Url;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Credential {
@@ -11,12 +12,13 @@ pub struct Credential {
 }
 
 pub struct Settings {
+    pub server: Url,
     path: String,
     credentials: Vec<Credential>,
 }
 
 impl Settings {
-    pub async fn new() -> Self {
+    pub async fn new(server: &str) -> Self {
         let path = format!(
             "{}/.subway/.settings.json",
             dirs::home_dir().unwrap().to_str().unwrap()
@@ -39,32 +41,33 @@ impl Settings {
             serde_json::from_str(&String::from_utf8(credential_string).unwrap()).unwrap();
 
         Self {
-            credentials,
+            server: Url::parse(server).unwrap(),
             path: settings_path.to_str().unwrap().to_string(),
+            credentials,
         }
     }
 
-    pub async fn read_token(&self, server: String) -> String {
+    pub async fn read_token(&self) -> String {
         let access_token = self
             .credentials
             .iter()
-            .find(|credential| credential.name == server)
+            .find(|credential| credential.name == self.server.as_str())
             .map(|credential| credential.access_token.to_string())
-            .unwrap_or_else(|| return "".to_string());
+            .unwrap_or("".to_string());
 
         access_token
     }
 
-    pub async fn write_token(&mut self, server: &str, access_token: &str) -> Result<()> {
+    pub async fn write_token(&mut self, access_token: &str) -> Result<()> {
         if let Some(exist_credential) = self
             .credentials
             .iter_mut()
-            .find(|credential| credential.name == server)
+            .find(|credential| credential.name == self.server.as_str())
         {
             exist_credential.access_token = access_token.to_string();
         } else {
             let new_credential = Credential {
-                name: server.to_string(),
+                name: self.server.to_string(),
                 access_token: access_token.to_string(),
             };
             self.credentials.push(new_credential);
