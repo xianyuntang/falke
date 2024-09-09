@@ -8,7 +8,7 @@ entity = { path = "../entity" }
 common = { path = "../common" }
 axum = { version = "0.7.5", features = ["ws"] }
 dotenv = "0.15.0"
-sea-orm = { version = "1.0.0", features = ["macros", "runtime-tokio-rustls", "sqlx-postgres"] }
+sea-orm = { version = "1.0.0", features = ["macros", "runtime-tokio-rustls", "sqlx-sqlite"] }
 serde = { version = "1.0.209", features = ["derive"] }
 serde_json = "1.0.127"
 tokio = { version = "1.39.3", features = ["macros", "rt-multi-thread"] }

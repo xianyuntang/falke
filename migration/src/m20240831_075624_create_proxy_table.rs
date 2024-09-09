@@ -24,8 +24,14 @@ impl MigrationTrait for Migration {
                     .table(Proxy::Table)
                     .if_not_exists()
                     .col(string(Proxy::Id).primary_key().string_len(255))
-                    .col(timestamp_with_time_zone(Proxy::CreatedAt).default(Expr::cust("now()")))
-                    .col(timestamp_with_time_zone(Proxy::UpdatedAt).default(Expr::cust("now()")))
+                    .col(
+                        timestamp_with_time_zone(Proxy::CreatedAt)
+                            .default(Expr::cust("CURRENT_TIMESTAMP")),
+                    )
+                    .col(
+                        timestamp_with_time_zone(Proxy::UpdatedAt)
+                            .default(Expr::cust("CURRENT_TIMESTAMP")),
+                    )
                     .col(string(Proxy::UserId).string_len(21))
                     .foreign_key(
                         ForeignKey::create()
