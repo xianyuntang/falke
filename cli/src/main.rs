@@ -11,7 +11,7 @@ use tokio::signal;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Cli {
-    #[clap(short, long, default_value = "https://falke.com")]
+    #[clap(short, long, default_value = "https://falke.app")]
     server: String,
 
     #[command(subcommand)]
