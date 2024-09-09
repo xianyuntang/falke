@@ -27,7 +27,7 @@ async fn proxy(
 ) -> Result<impl IntoResponse, ApiError> {
     let path = uri.to_string();
     let to_api = headers
-        .get("x-subway-api")
+        .get("x-falke-api")
         .map(|value| value == "yes")
         .unwrap_or_else(|| false);
 

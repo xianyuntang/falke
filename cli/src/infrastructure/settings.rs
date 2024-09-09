@@ -20,7 +20,7 @@ pub struct Settings {
 impl Settings {
     pub async fn new(server: &str) -> Self {
         let path = format!(
-            "{}/.subway/.settings.json",
+            "{}/.falke/.settings.json",
             dirs::home_dir().unwrap().to_str().unwrap()
         );
         let settings_path = Path::new(&path);

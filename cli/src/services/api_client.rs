@@ -14,7 +14,7 @@ pub struct ApiService {
 
 impl ApiService {
     pub fn new(settings: Settings) -> Self {
-        let headers = vec![("x-subway-api".to_string(), "yes".to_string())];
+        let headers = vec![("x-falke-api".to_string(), "yes".to_string())];
         let proxy_client = Self::build_client(None);
         let client = Self::build_client(Some(headers));
 

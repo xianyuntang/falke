@@ -16,7 +16,7 @@ COPY --from=builder /app/target/release/cli .
 COPY --from=builder /app/.env .
 COPY --from=builder /app/entrypoint.sh .
 
-RUN useradd -ms /bin/bash subway
+RUN useradd -ms /bin/bash falke
 
-USER subway
+USER falke
 ENTRYPOINT ["./entrypoint.sh"]
