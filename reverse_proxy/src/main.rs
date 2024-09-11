@@ -1,11 +1,11 @@
 mod domain;
 mod infrastructure;
-
 use axum::extract::Request;
 use axum::ServiceExt;
 use axum_server::tls_rustls::RustlsConfig;
 use common::infrastructure::settings::Settings;
 use infrastructure::server;
+use rustls;
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use tokio;
@@ -15,6 +15,9 @@ use tower_layer::Layer;
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt().init();
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .unwrap();
 
     let settings = Settings::new();
 
