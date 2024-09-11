@@ -19,7 +19,6 @@ async fn main() {
     let settings = Settings::new();
 
     let app = server::make_app(settings.clone());
-
     let app = NormalizePathLayer::trim_trailing_slash().layer(app);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], settings.reverse_proxy_port));
@@ -38,7 +37,7 @@ async fn main() {
         axum_server::bind_rustls(addr, rustls_config)
             .serve(ServiceExt::<Request>::into_make_service(app))
             .await
-            .unwrap()
+            .unwrap();
     } else {
         tracing::info!(
             "Application is running on http://0.0.0.0:{}",
@@ -47,6 +46,6 @@ async fn main() {
         axum_server::bind(addr)
             .serve(ServiceExt::<Request>::into_make_service(app))
             .await
-            .unwrap()
+            .unwrap();
     }
 }

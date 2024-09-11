@@ -21,7 +21,7 @@ impl ApiService {
     pub async fn acquire_proxy(&mut self, subdomain: &Option<String>) -> Result<()> {
         let access_token = self.settings.read_token().await;
 
-        let url = Url::parse(&format!("{}/api/proxies", &self.settings.server))?;
+        let url = Url::join(&self.settings.server, "/api/proxies")?;
 
         let dto = AcquireProxyRequestDto {
             subdomain: subdomain.clone(),
@@ -37,18 +37,22 @@ impl ApiService {
 
         if response.status().is_success() {
             let response: AcquireProxyResponseDto = response.json().await?;
-
             let port_str = self
                 .settings
                 .server
                 .port()
                 .map_or("".to_string(), |port| format!(":{}", port));
 
+            let domain = self.settings.server.host().unwrap().to_string();
             tracing::info!(
                 "Proxy on {}://{}.{}{}",
                 self.settings.server.scheme(),
                 &response.id,
-                self.settings.server.domain().unwrap(),
+                if domain == "0.0.0.0" {
+                    "localhost"
+                } else {
+                    &domain
+                },
                 port_str
             );
             self.proxy_id = Option::from(response.id);
@@ -60,11 +64,10 @@ impl ApiService {
     }
 
     pub async fn release_proxy(&self) -> Result<()> {
-        let url = Url::parse(&format!(
-            "{}/api/proxies/{}",
-            self.settings.server.as_str(),
-            self.proxy_id.clone().unwrap()
-        ))?;
+        let url = Url::join(
+            &self.settings.server,
+            &format!("/api/proxies/{}", self.proxy_id.clone().unwrap()),
+        )?;
 
         let access_token = self.settings.read_token().await;
 
@@ -91,7 +94,7 @@ impl ApiService {
                 } else {
                     "ws"
                 },
-                self.settings.server.domain().unwrap(),
+                self.settings.server.host().unwrap().to_string(),
                 proxy_id
             ))?,
             Some(port) => Url::parse(&format!(
@@ -101,7 +104,7 @@ impl ApiService {
                 } else {
                     "ws"
                 },
-                self.settings.server.domain().unwrap(),
+                self.settings.server.host().unwrap().to_string(),
                 port,
                 proxy_id
             ))?,
@@ -113,7 +116,6 @@ impl ApiService {
         request.headers_mut().insert("x-falke-api", "yes".parse()?);
 
         let endpoint = endpoint.to_string();
-
         let (ws_stream, _) = connect_async(request).await?;
         let (sender, mut receiver) = ws_stream.split();
         let endpoint = Arc::new(endpoint.clone());

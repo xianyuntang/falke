@@ -25,7 +25,11 @@ async fn proxy(
     headers: HeaderMap,
     body: Bytes,
 ) -> Result<impl IntoResponse, ApiError> {
-    let path = uri.path().to_string();
+    let mut path = uri.path().to_string();
+    if let Some(query) = uri.query() {
+        path += "?";
+        path += query;
+    }
     let to_api = headers
         .get("x-falke-api")
         .map(|value| value == "yes")

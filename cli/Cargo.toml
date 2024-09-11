@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 common = { path = "../common" }
 clap = { version = "4.5.16", features = ["derive"] }
-reqwest = { version = "0.12.7", features = ["json"] }
+reqwest = { version = "0.12.7", features = ["json", "rustls-tls"] }
 tokio = { version = "1.40.0", features = ["full"] }
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
@@ -15,8 +15,9 @@ serde_json = "1.0.127"
 serde = { version = "1.0.209", features = ["derive"] }
 rpassword = "7.3.1"
 tokio-tungstenite = { version = "0.23.1", features = ["native-tls"] }
+tungstenite = "0.24.0"
 futures-util = "0.3.30"
 dirs = "5.0.1"
 anyhow = "1.0.86"
 http = "1.1.0"
-tungstenite = "0.24.0"
+

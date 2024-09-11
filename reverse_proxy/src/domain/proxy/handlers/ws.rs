@@ -36,11 +36,11 @@ pub async fn handler(
 
         let client_to_server = async {
             while let Some(Ok(message)) = client_receiver.next().await {
-                if server_sender
+                if let Err(err) = server_sender
                     .send(ws::Message::from(message.into_data()))
                     .await
-                    .is_err()
                 {
+                    tracing::error!("{err:#?}");
                     break;
                 }
             }
@@ -48,11 +48,11 @@ pub async fn handler(
 
         let server_to_client = async {
             while let Some(Ok(message)) = server_receiver.next().await {
-                if client_sender
+                if let Err(err) = client_sender
                     .send(tungstenite::Message::from(message.into_data()))
                     .await
-                    .is_err()
                 {
+                    tracing::error!("{err:#?}");
                     break;
                 }
             }

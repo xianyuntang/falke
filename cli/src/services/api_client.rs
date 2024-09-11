@@ -27,9 +27,7 @@ impl ApiService {
     }
 
     fn build_client(headers: Option<Vec<(String, String)>>) -> Client {
-        let mut builder = Client::builder()
-            .danger_accept_invalid_certs(true)
-            .redirect(Policy::none());
+        let mut builder = Client::builder().use_rustls_tls().redirect(Policy::none());
         if let Some(headers) = headers {
             let mut header_map = HeaderMap::new();
             for (key, value) in headers {
