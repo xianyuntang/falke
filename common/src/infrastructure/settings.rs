@@ -8,6 +8,7 @@ pub enum EnvironmentVariable {
     ApiHost,
     ReverseProxyPort,
     ReverseProxyHost,
+    ReverseProxyCertPath,
 }
 
 impl EnvironmentVariable {
@@ -19,6 +20,7 @@ impl EnvironmentVariable {
             EnvironmentVariable::ReverseProxyHost => "REVERSE_PROXY_HOST",
             EnvironmentVariable::DatabaseUrl => "DATABASE_URL",
             EnvironmentVariable::ReverseProxyPort => "REVERSE_PROXY_PORT",
+            EnvironmentVariable::ReverseProxyCertPath => "REVERSE_PROXY_CERT_PATH",
         }
     }
 
@@ -34,6 +36,7 @@ pub struct Settings {
     pub api_host: String,
     pub reverse_proxy_port: u16,
     pub reverse_proxy_host: String,
+    pub reverse_proxy_cert_path: Option<String>,
     pub database_url: String,
 }
 
@@ -79,6 +82,9 @@ impl Settings {
                 panic!("{}", err)
             });
 
+        let reverse_proxy_cert_path: Option<String> =
+            EnvironmentVariable::ReverseProxyCertPath.get_value().ok();
+
         let database_url: String =
             EnvironmentVariable::DatabaseUrl
                 .get_value()
@@ -93,6 +99,7 @@ impl Settings {
             api_host,
             reverse_proxy_port,
             reverse_proxy_host,
+            reverse_proxy_cert_path,
             database_url,
         }
     }

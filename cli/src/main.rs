@@ -37,7 +37,8 @@ async fn main() {
 
     let mut api_service = ApiService::new(settings);
 
-    if api_service.health_check().await.is_err() {
+    if let Err(err) = api_service.health_check().await {
+        println!("{err:#?}");
         tracing::error!("Cannot connect to server {}", &cli.server);
         panic!()
     };

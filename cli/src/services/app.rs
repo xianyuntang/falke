@@ -4,7 +4,7 @@ use url::Url;
 
 impl ApiService {
     pub async fn health_check(&self) -> Result<()> {
-        let url = Url::parse(&format!("{}/api/ping", &self.settings.server))?;
+        let url = Url::join(&self.settings.server, "/api/ping")?;
         self.client.get(url).send().await?;
         Ok(())
     }

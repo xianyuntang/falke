@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 common = { path = "../common" }
 axum = { version = "0.7.5", features = ["macros", "ws"] }
+axum-server = { version = "0.7.1", features = ["tls-rustls"] }
 dotenv = "0.15.0"
 url = "2.5.2"
 tracing = "0.1.40"
@@ -19,3 +20,4 @@ futures-util = "0.3.30"
 anyhow = "1.0.86"
 tower-http = { version = "0.5.2", features = ["normalize-path"] }
 tower-layer = "0.3.3"
+
