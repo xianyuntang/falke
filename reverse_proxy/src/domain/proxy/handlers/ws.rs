@@ -11,7 +11,7 @@ pub async fn handler(
     path: String,
     api_endpoint: String,
     to_api: bool,
-) -> () {
+) {
     let url = Url::parse(&format!(
         "ws://{}{}",
         api_endpoint,

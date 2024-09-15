@@ -35,8 +35,8 @@ pub async fn handler(
         let id = dto.subdomain.unwrap_or_else(|| {
             format!(
                 "{}-{}",
-                random_word::gen(Lang::En).to_string(),
-                random_word::gen(Lang::En).to_string()
+                random_word::gen(Lang::En),
+                random_word::gen(Lang::En)
             )
         });
 

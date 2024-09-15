@@ -94,7 +94,7 @@ impl ApiService {
                 } else {
                     "ws"
                 },
-                self.settings.server.host().unwrap().to_string(),
+                self.settings.server.host().unwrap(),
                 proxy_id
             ))?,
             Some(port) => Url::parse(&format!(
@@ -104,7 +104,7 @@ impl ApiService {
                 } else {
                     "ws"
                 },
-                self.settings.server.host().unwrap().to_string(),
+                self.settings.server.host().unwrap(),
                 port,
                 proxy_id
             ))?,

@@ -5,7 +5,7 @@ use futures_util::stream::SplitSink;
 use std::sync::{Arc, LazyLock};
 use tokio::sync::{Mutex, Notify};
 
-pub static SOCKET_MANAGER: LazyLock<SocketManager> = LazyLock::new(|| SocketManager::new());
+pub static SOCKET_MANAGER: LazyLock<SocketManager> = LazyLock::new(SocketManager::new);
 
 pub struct SocketManager {
     pub senders: Arc<DashMap<String, Mutex<SplitSink<WebSocket, Message>>>>,

@@ -55,7 +55,7 @@ async fn acquire_proxy(
         .get("authorization")
         .ok_or_else(|| ApiError::UnauthorizedError)?;
 
-    let user_id = verify(&state.settings.api_secret, &authorization.to_str().unwrap())?;
+    let user_id = verify(&state.settings.api_secret, authorization.to_str().unwrap())?;
 
     let response =
         handlers::acquire_proxy::handler(state.db, state.settings, dto, &user_id).await?;
@@ -72,7 +72,7 @@ async fn release_proxy(
         .get("authorization")
         .ok_or_else(|| ApiError::UnauthorizedError)?;
 
-    let user_id = verify(&state.settings.api_secret, &authorization.to_str().unwrap())?;
+    let user_id = verify(&state.settings.api_secret, authorization.to_str().unwrap())?;
 
     handlers::release_proxy::handler(state.db, &proxy_id, &user_id).await?;
 

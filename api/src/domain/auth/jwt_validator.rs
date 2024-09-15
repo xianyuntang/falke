@@ -28,7 +28,7 @@ pub fn sign_jwt(secret: &str, id: &str) -> Result<String> {
 
 pub fn verify(secret: &str, token: &str) -> Result<String> {
     let token: TokenData<Claims> = decode(
-        &token,
+        token,
         &DecodingKey::from_secret(secret.as_ref()),
         &Default::default(),
     )?;

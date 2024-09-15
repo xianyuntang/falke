@@ -13,7 +13,7 @@ pub async fn handler(dto: SignUpRequestDto, db: DatabaseConnection) -> Result<Va
         .one(&db)
         .await?;
 
-    if let Some(_) = exist {
+    if exist.is_some() {
         return Err(ApiError::ConflictError);
     }
 

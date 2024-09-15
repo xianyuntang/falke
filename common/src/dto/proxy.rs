@@ -107,7 +107,7 @@ impl IntoResponseAsync for ReqwestResponse {
     async fn into_response(self) -> Result<axum::response::Response> {
         let reqwest_response = self.0;
 
-        let response_status = reqwest_response.status().clone();
+        let response_status = reqwest_response.status();
         let response_headers = reqwest_response.headers().clone();
         let response_body = Body::from(reqwest_response.bytes().await?);
 

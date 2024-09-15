@@ -9,9 +9,7 @@ pub struct AppState {
 
 pub fn make_app(settings: Settings) -> Router {
     let shared_state = AppState { settings };
-    let app = Router::new()
+    Router::new()
         .nest("/", domain::create_router())
-        .with_state(shared_state);
-
-    app
+        .with_state(shared_state)
 }

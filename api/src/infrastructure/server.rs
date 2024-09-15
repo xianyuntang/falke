@@ -11,9 +11,7 @@ pub struct AppState {
 
 pub fn make_app(settings: Settings, db: DatabaseConnection) -> Router {
     let shared_state = AppState { db, settings };
-    let app = Router::new()
+    Router::new()
         .nest("/api", domain::create_router())
-        .with_state(shared_state);
-
-    app
+        .with_state(shared_state)
 }

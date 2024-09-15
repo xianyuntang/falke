@@ -5,10 +5,8 @@ use axum::ServiceExt;
 use axum_server::tls_rustls::RustlsConfig;
 use common::infrastructure::settings::Settings;
 use infrastructure::server;
-use rustls;
 use std::net::SocketAddr;
 use std::path::PathBuf;
-use tokio;
 use tower_http::normalize_path::NormalizePathLayer;
 use tower_layer::Layer;
 

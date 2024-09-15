@@ -27,7 +27,7 @@ pub async fn handler(db: DatabaseConnection, socket: WebSocket, proxy_id: String
     tokio::spawn(async move {
         while let Some(Ok(message)) = receiver.next().await {
             let proxy_response: ProxyResponse =
-                serde_json::from_str(&message.to_text().unwrap()).unwrap();
+                serde_json::from_str(message.to_text().unwrap()).unwrap();
             SOCKET_MANAGER
                 .proxy_responses
                 .insert(proxy_response.id.clone(), proxy_response);
