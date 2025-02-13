@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-amd64:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -27,18 +27,9 @@ jobs:
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
-        if: github.event_name == 'pull_request'
-        with:
-          context: .
-          push: true
-          platforms: linux/amd64, linux/arm64
-          tags: ghcr.io/${{ github.repository_owner }}/falke:${{ github.head_ref }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
         if: github.ref == 'refs/heads/main'
         with:
           context: .
           push: true
-          platforms: linux/amd64, linux/arm64
+          platforms: linux/amd64
           tags: ghcr.io/${{ github.repository_owner }}/falke:latest

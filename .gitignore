@@ -18,3 +18,7 @@ target/
 
 # sqlite
 db.sqlite
+
+
+# Cache
+.DS_Store
