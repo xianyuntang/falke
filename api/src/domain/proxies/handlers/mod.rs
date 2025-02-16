@@ -1,4 +1,4 @@
-pub(crate) mod acquire_proxy;
-pub(crate) mod proxy;
-pub(crate) mod release_proxy;
-pub(crate) mod socket;
+pub mod acquire_proxy;
+pub mod proxy;
+pub mod release_proxy;
+pub mod socket;

@@ -19,7 +19,7 @@ use serde_json::json;
 mod handlers;
 mod socket_manager;
 
-pub(crate) fn create_route() -> Router<AppState> {
+pub fn create_route() -> Router<AppState> {
     Router::new().nest(
         "/proxies",
         Router::new()
