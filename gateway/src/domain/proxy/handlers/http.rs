@@ -3,7 +3,7 @@ use axum::body::Bytes;
 use axum::extract::Host;
 use axum::http::HeaderMap;
 use axum::response::Response;
-use common::dto::proxy::{IntoResponseAsync, ReqwestResponse};
+use shared::dto::proxy::{IntoResponseAsync, ReqwestResponse};
 use reqwest::redirect::Policy;
 use reqwest::Method;
 use url::Url;

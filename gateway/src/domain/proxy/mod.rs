@@ -7,7 +7,7 @@ use axum::http::HeaderMap;
 use axum::response::{IntoResponse, Response};
 use axum::routing::any;
 use axum::Router;
-use common::infrastructure::error::ApiError;
+use shared::infrastructure::error::ApiError;
 use reqwest::Method;
 
 pub fn create_route() -> Router<AppState> {

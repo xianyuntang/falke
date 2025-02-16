@@ -2,9 +2,9 @@ use crate::infrastructure::server::AppState;
 use axum::extract::{Json, State};
 use axum::response::IntoResponse;
 use axum::routing::{post, Router};
-use common::dto::auth::{SignInRequestDto, SignUpRequestDto, ValidateTokenRequestDto};
-use common::infrastructure::error::ApiError;
-use common::infrastructure::response::JsonResponse;
+use shared::dto::auth::{SignInRequestDto, SignUpRequestDto, ValidateTokenRequestDto};
+use shared::infrastructure::error::ApiError;
+use shared::infrastructure::response::JsonResponse;
 use validator::Validate;
 
 mod handlers;

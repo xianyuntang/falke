@@ -1,10 +1,10 @@
 [package]
-name = "reverse_proxy"
+name = "gateway"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-common = { path = "../common" }
+shared = { path = "../shared" }
 axum = { version = "0.7.5", features = ["macros", "ws"] }
 axum-server = { version = "0.7.1", features = ["tls-rustls"] }
 dotenv = "0.15.0"

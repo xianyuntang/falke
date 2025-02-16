@@ -6,8 +6,8 @@ if [ "$1" = "cli" ]; then
   exec ./cli "$@"
 elif [ "$1" = "api" ]; then
   exec ./api
-elif [ "$1" = "reverse_proxy" ]; then
-  exec ./reverse_proxy
+elif [ "$1" = "gateway" ]; then
+  exec ./gateway
 elif [ "$1" = "migration" ]; then
   shift
   exec ./migration "$@"

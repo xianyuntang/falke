@@ -1,6 +1,6 @@
-use common::dto::proxy::AcquireProxyRequestDto;
-use common::infrastructure::error::ApiError;
-use common::infrastructure::settings::Settings;
+use shared::dto::proxy::AcquireProxyRequestDto;
+use shared::infrastructure::error::ApiError;
+use shared::infrastructure::settings::Settings;
 use entity::entities::proxy;
 use random_word::Lang;
 use sea_orm::{
@@ -21,7 +21,7 @@ pub async fn handler(
 
     if let Some(exist) = exist {
         if exist.user_id == user_id {
-            let proxy_endpoint = &format!("{}.{}", exist.id, settings.reverse_proxy_host);
+            let proxy_endpoint = &format!("{}.{}", exist.id, settings.gateway_host);
             Ok(json!({
                 "id": exist.id,
                 "created_at":exist.created_at,

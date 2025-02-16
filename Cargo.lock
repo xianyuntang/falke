@@ -157,7 +157,6 @@ dependencies = [
  "axum",
  "bcrypt",
  "chrono",
- "common",
  "dashmap",
  "dotenv",
  "entity",
@@ -169,6 +168,7 @@ dependencies = [
  "sea-orm",
  "serde",
  "serde_json",
+ "shared",
  "tokio",
  "tower-http",
  "tower-layer",
@@ -922,7 +922,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "common",
  "dirs",
  "futures-util",
  "http",
@@ -930,6 +929,7 @@ dependencies = [
  "rpassword",
  "serde",
  "serde_json",
+ "shared",
  "tokio",
  "tokio-tungstenite 0.23.1",
  "tracing",
@@ -952,23 +952,6 @@ name = "colorchoice"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3fd119d74b830634cea2a0f58bbd0d54540518a14397557951e79340abc28c0"
-
-[[package]]
-name = "common"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "dotenv",
- "log",
- "reqwest",
- "sea-orm",
- "serde",
- "serde_json",
- "tracing",
- "url",
- "validator",
-]
 
 [[package]]
 name = "concurrent-queue"
@@ -1483,6 +1466,29 @@ dependencies = [
  "pin-project-lite",
  "pin-utils",
  "slab",
+]
+
+[[package]]
+name = "gateway"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "axum-server",
+ "dotenv",
+ "futures-util",
+ "reqwest",
+ "rustls 0.23.12",
+ "serde",
+ "serde_json",
+ "shared",
+ "tokio",
+ "tokio-tungstenite 0.23.1",
+ "tower-http",
+ "tower-layer",
+ "tracing",
+ "tracing-subscriber",
+ "url",
 ]
 
 [[package]]
@@ -2803,29 +2809,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "reverse_proxy"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "axum-server",
- "common",
- "dotenv",
- "futures-util",
- "reqwest",
- "rustls 0.23.12",
- "serde",
- "serde_json",
- "tokio",
- "tokio-tungstenite 0.23.1",
- "tower-http",
- "tower-layer",
- "tracing",
- "tracing-subscriber",
- "url",
-]
-
-[[package]]
 name = "ring"
 version = "0.17.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3353,6 +3336,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f40ca3c46823713e0d4209592e8d6e826aa57e928f09752619fc696c499637f6"
 dependencies = [
  "lazy_static",
+]
+
+[[package]]
+name = "shared"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "dotenv",
+ "log",
+ "reqwest",
+ "sea-orm",
+ "serde",
+ "serde_json",
+ "tracing",
+ "url",
+ "validator",
 ]
 
 [[package]]

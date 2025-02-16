@@ -4,8 +4,8 @@ use tower_layer::Layer;
 
 use axum::extract::Request;
 use axum::ServiceExt;
-use common::infrastructure::db;
-use common::infrastructure::settings::Settings;
+use shared::infrastructure::db;
+use shared::infrastructure::settings::Settings;
 use infrastructure::server;
 use sea_orm::DatabaseConnection;
 use tower_http::normalize_path::NormalizePathLayer;

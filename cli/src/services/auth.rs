@@ -1,6 +1,6 @@
 use crate::services::api_client::ApiService;
 use anyhow::Result;
-use common::dto::auth::{
+use shared::dto::auth::{
     SignInRequestDto, SignInResponseDto, ValidateTokenRequestDto, ValidateTokenResponseDto,
 };
 use std::io::Write;

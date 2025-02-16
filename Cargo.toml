@@ -1,3 +1,3 @@
 [workspace]
-members = ["api", "cli", "migration", "entity", "common", "reverse_proxy"]
+members = ["api", "cli", "migration", "entity", "shared", "gateway"]
 resolver = "2"

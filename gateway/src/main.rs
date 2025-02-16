@@ -3,7 +3,7 @@ mod infrastructure;
 use axum::extract::Request;
 use axum::ServiceExt;
 use axum_server::tls_rustls::RustlsConfig;
-use common::infrastructure::settings::Settings;
+use shared::infrastructure::settings::Settings;
 use infrastructure::server;
 use std::net::SocketAddr;
 use std::path::PathBuf;
@@ -22,12 +22,12 @@ async fn main() {
     let app = server::make_app(settings.clone());
     let app = NormalizePathLayer::trim_trailing_slash().layer(app);
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], settings.reverse_proxy_port));
+    let addr = SocketAddr::from(([0, 0, 0, 0], settings.gateway_port));
 
-    if let Some(cert_path) = settings.reverse_proxy_cert_path {
+    if let Some(cert_path) = settings.gateway_cert_path {
         tracing::info!(
             "Application is running on https://0.0.0.0:{}",
-            settings.reverse_proxy_port
+            settings.gateway_port
         );
         let rustls_config = RustlsConfig::from_pem_file(
             PathBuf::from(&cert_path).join("cert.pem"),
@@ -42,7 +42,7 @@ async fn main() {
     } else {
         tracing::info!(
             "Application is running on http://0.0.0.0:{}",
-            settings.reverse_proxy_port
+            settings.gateway_port
         );
         axum_server::bind(addr)
             .serve(ServiceExt::<Request>::into_make_service(app))

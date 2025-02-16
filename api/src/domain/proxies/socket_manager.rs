@@ -1,5 +1,5 @@
 use axum::extract::ws::{Message, WebSocket};
-use common::dto::proxy::ProxyResponse;
+use shared::dto::proxy::ProxyResponse;
 use dashmap::DashMap;
 use futures_util::stream::SplitSink;
 use std::sync::{Arc, LazyLock};

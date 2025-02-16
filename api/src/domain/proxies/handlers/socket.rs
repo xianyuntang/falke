@@ -1,6 +1,6 @@
 use crate::domain::proxies::socket_manager::SOCKET_MANAGER;
 use axum::extract::ws::{Message, WebSocket};
-use common::dto::proxy::ProxyResponse;
+use shared::dto::proxy::ProxyResponse;
 use entity::entities::proxy;
 use futures_util::{SinkExt, StreamExt};
 use sea_orm::{DatabaseConnection, EntityTrait};

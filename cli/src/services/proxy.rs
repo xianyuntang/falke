@@ -1,7 +1,7 @@
 use crate::services::api_client::ApiService;
 use anyhow::Result;
-use common::converter::json::json_string_to_header_map;
-use common::dto::proxy::{
+use shared::converter::json::json_string_to_header_map;
+use shared::dto::proxy::{
     AcquireProxyRequestDto, AcquireProxyResponseDto, IntoProxyResponseAsync, ProxyRequest,
     ProxyResponse, ReqwestResponse,
 };

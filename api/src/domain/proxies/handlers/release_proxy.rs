@@ -1,5 +1,5 @@
 use anyhow::Result;
-use common::infrastructure::error::ApiError;
+use shared::infrastructure::error::ApiError;
 use entity::entities::proxy;
 use sea_orm::{DatabaseConnection, EntityTrait, ModelTrait};
 

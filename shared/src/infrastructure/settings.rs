@@ -6,9 +6,9 @@ pub enum EnvironmentVariable {
     ApiPort,
     ApiSecret,
     ApiHost,
-    ReverseProxyPort,
-    ReverseProxyHost,
-    ReverseProxyCertPath,
+    GatewayPort,
+    GatewayHost,
+    GatewayCertPath,
 }
 
 impl EnvironmentVariable {
@@ -17,10 +17,10 @@ impl EnvironmentVariable {
             EnvironmentVariable::ApiPort => "API_PORT",
             EnvironmentVariable::ApiSecret => "API_SECRET",
             EnvironmentVariable::ApiHost => "API_HOST",
-            EnvironmentVariable::ReverseProxyHost => "REVERSE_PROXY_HOST",
+            EnvironmentVariable::GatewayHost => "GATEWAY_HOST",
             EnvironmentVariable::DatabaseUrl => "DATABASE_URL",
-            EnvironmentVariable::ReverseProxyPort => "REVERSE_PROXY_PORT",
-            EnvironmentVariable::ReverseProxyCertPath => "REVERSE_PROXY_CERT_PATH",
+            EnvironmentVariable::GatewayPort => "GATEWAY_PORT",
+            EnvironmentVariable::GatewayCertPath => "GATEWAY_CERT_PATH",
         }
     }
 
@@ -34,9 +34,9 @@ pub struct Settings {
     pub api_port: u16,
     pub api_secret: String,
     pub api_host: String,
-    pub reverse_proxy_port: u16,
-    pub reverse_proxy_host: String,
-    pub reverse_proxy_cert_path: Option<String>,
+    pub gateway_port: u16,
+    pub gateway_host: String,
+    pub gateway_cert_path: Option<String>,
     pub database_url: String,
 }
 
@@ -66,24 +66,24 @@ impl Settings {
                 panic!("{}", err)
             });
 
-        let reverse_proxy_port: u16 = EnvironmentVariable::ReverseProxyPort
+        let gateway_port: u16 = EnvironmentVariable::GatewayPort
             .get_value()
             .ok()
             .and_then(|value| value.parse::<u16>().ok())
             .unwrap_or_else(|| {
-                tracing::info!("REVERSE_PROXY_PORT is not set or invalid, defaulting to 3000");
+                tracing::info!("GATEWAY_PORT is not set or invalid, defaulting to 3000");
                 3000
             });
 
-        let reverse_proxy_host: String = EnvironmentVariable::ReverseProxyHost
+        let gateway_host: String = EnvironmentVariable::GatewayHost
             .get_value()
             .unwrap_or_else(|err| {
-                tracing::error!("REVERSE_PROXY_HOST must be set");
+                tracing::error!("GATEWAY_HOST must be set");
                 panic!("{}", err)
             });
 
-        let reverse_proxy_cert_path: Option<String> =
-            EnvironmentVariable::ReverseProxyCertPath.get_value().ok();
+        let gateway_cert_path: Option<String> =
+            EnvironmentVariable::GatewayCertPath.get_value().ok();
 
         let database_url: String =
             EnvironmentVariable::DatabaseUrl
@@ -97,9 +97,9 @@ impl Settings {
             api_port,
             api_secret,
             api_host,
-            reverse_proxy_port,
-            reverse_proxy_host,
-            reverse_proxy_cert_path,
+            gateway_port,
+            gateway_host,
+            gateway_cert_path,
             database_url,
         }
     }
